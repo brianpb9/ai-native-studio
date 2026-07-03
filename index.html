@@ -24,138 +24,132 @@
     --border: rgba(255,255,255,0.06);
     --glow: rgba(108,92,231,0.12);
   }
-  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-  html { scroll-behavior:smooth; background:var(--bg); color:var(--white); font-family:'Inter',system-ui,sans-serif; -webkit-font-smoothing:antialiased; cursor:none; }
-  
-  body {
-    position:relative;
-    overflow-x:hidden;
-  }
-  body::before {
-    content:'';
-    position:fixed;
-    inset:0;
-    z-index:-1;
-    background:
-      radial-gradient(ellipse at 50% 0%, rgba(108,92,231,0.08) 0%, transparent 70%),
-      radial-gradient(ellipse at 80% 50%, rgba(0,210,255,0.04) 0%, transparent 60%);
-    pointer-events:none;
-  }
-  body::after {
-    content:'';
-    position:fixed;
-    inset:0;
-    z-index:9998;
-    opacity:0.03;
-    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size:256px 256px;
-    pointer-events:none;
-  }
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth;background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;cursor:none}
+  body{position:relative;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 0%,rgba(108,92,231,0.08) 0%,transparent 70%),radial-gradient(ellipse at 80% 50%,rgba(0,210,255,0.04) 0%,transparent 60%);pointer-events:none}
+  body::after{content:'';position:fixed;inset:0;z-index:9998;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px 256px;pointer-events:none}
 
-  /* Particle canvas */
-  #particles { position:fixed; top:0; left:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+  #particles{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
 
-  /* Custom cursor */
-  .cursor { position:fixed; top:0; left:0; pointer-events:none; z-index:9999; }
-  .cursor-dot { width:6px; height:6px; background:var(--cyan); border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:width .2s, height .2s, background .2s; }
-  .cursor-ring { width:32px; height:32px; border:1.5px solid rgba(108,92,231,0.5); border-radius:50%; position:absolute; transform:translate(-50%,-50%); transition:width .3s, height .3s, border-color .3s; }
-  .cursor.hover .cursor-dot { width:12px; height:12px; background:var(--green); }
-  .cursor.hover .cursor-ring { width:48px; height:48px; border-color:var(--green); }
+  .cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:9999}
+  .cursor-dot{width:6px;height:6px;background:var(--cyan);border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s}
+  .cursor-ring{width:32px;height:32px;border:1.5px solid rgba(108,92,231,.5);border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:width .3s,height .3s,border-color .3s}
+  .cursor.hover .cursor-dot{width:12px;height:12px;background:var(--green)}
+  .cursor.hover .cursor-ring{width:48px;height:48px;border-color:var(--green)}
 
-  /* Nav */
-  .nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:1.25rem 2rem; display:flex; justify-content:space-between; align-items:center; backdrop-filter:blur(20px); background:rgba(10,10,15,0.8); border-bottom:1px solid var(--border); cursor:auto; }
-  .nav-logo { font-family:'Clash Display',sans-serif; font-weight:800; font-size:1.25rem; background:linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .nav-links { display:flex; gap:2rem; list-style:none; }
-  .nav-links a { color:var(--muted); text-decoration:none; font-size:0.85rem; transition:color .2s; cursor:pointer; }
-  .nav-links a:hover { color:var(--white); }
+  .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(20px);background:rgba(10,10,15,.8);border-bottom:1px solid var(--border);cursor:auto}
+  .nav-logo{font-family:'Clash Display',sans-serif;font-weight:700;font-size:1.25rem;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .nav-links{display:flex;gap:2rem;list-style:none}
+  .nav-links a{color:var(--muted);text-decoration:none;font-size:.85rem;transition:color .2s;cursor:pointer}
+  .nav-links a:hover{color:var(--white)}
 
-  /* Sections */
-  section { min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:6rem 2rem; position:relative; z-index:1; }
+  section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6rem 2rem;position:relative;z-index:1}
 
-  /* Hero */
-  .hero { position:relative; overflow:hidden; }
-  .hero-bg { position:absolute; inset:0; z-index:-1; opacity:0.08; }
-  .hero-bg img { width:100%; height:100%; object-fit:cover; filter:blur(3px); }
-  .hero-bg::after { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at center, transparent 30%, var(--bg) 80%); }
-  .hero-typing { font-family:'DM Mono',monospace; color:var(--green); font-size:0.9rem; margin-bottom:2.5rem; min-height:1.5rem; }
-  .hero-typing::after { content:'|'; animation:blink 1s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  .hero-title { font-family:'Clash Display',sans-serif; font-weight:900; font-size:clamp(3rem, 8vw, 7rem); line-height:1.05; letter-spacing:-0.03em; margin-bottom:1.5rem; text-align:center; }
-  .hero-title .a { color:var(--cyan); } .hero-title .b { color:#fff; } .hero-title .c { color:var(--purple); }
-  .hero-tagline { font-size:clamp(0.9rem, 1.8vw, 1.15rem); color:var(--muted); letter-spacing:0.3em; text-transform:uppercase; margin-bottom:3rem; text-align:center; }
+  /* ─── HERO ─── */
+  .hero{position:relative;overflow:hidden}
+  .hero-bg{position:absolute;inset:0;z-index:-1;opacity:.08}
+  .hero-bg img{width:100%;height:100%;object-fit:cover;filter:blur(3px)}
+  .hero-bg::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,var(--bg) 80%)}
 
-  /* Stats row */
-  .stats-row { display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; }
-  .stat-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2rem 2.5rem; text-align:center; backdrop-filter:blur(12px); transition:all .4s; position:relative; overflow:hidden; min-width:200px; cursor:pointer; }
-  .stat-card::before { content:''; position:absolute; top:-50%; left:-50%; width:200%; height:200%; background:radial-gradient(circle at center, var(--glow), transparent 70%); opacity:0; transition:opacity .4s; }
-  .stat-card:hover::before { opacity:1; }
-  .stat-card:hover { border-color:rgba(108,92,231,0.3); transform:translateY(-4px); }
-  .stat-number { font-family:'Clash Display',sans-serif; font-weight:800; font-size:2.5rem; background:linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .stat-label { color:var(--muted); font-size:0.85rem; margin-top:0.5rem; text-transform:uppercase; letter-spacing:0.1em; }
-  .stat-badge { color:var(--green); font-size:0.75rem; margin-top:0.75rem; }
+  /* Interactive terminal */
+  .hero-terminal{background:rgba(0,0,0,.6);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;font-family:'DM Mono',monospace;font-size:.85rem;margin-bottom:2.5rem;width:100%;max-width:520px;backdrop-filter:blur(12px);text-align:left;position:relative;overflow:hidden}
+  .hero-terminal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple),transparent)}
+  .term-line{line-height:1.8;min-height:1.5rem}
+  .term-prompt{color:var(--purple)}
+  .term-input{background:transparent;border:none;outline:none;color:var(--green);font-family:'DM Mono',monospace;font-size:.85rem;width:auto;min-width:200px;caret-color:var(--green)}
+  .term-input::placeholder{color:rgba(0,255,136,.3)}
+  .term-output{color:var(--cyan);font-size:.78rem;line-height:1.6;margin-top:.25rem;opacity:0;transform:translateY(4px);transition:all .3s}
+  .term-output.show{opacity:1;transform:translateY(0)}
+  .term-cursor{display:inline-block;width:8px;height:16px;background:var(--green);animation:blink 1s infinite;vertical-align:text-bottom;margin-left:2px}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-  .scroll-indicator { position:absolute; bottom:2rem; display:flex; flex-direction:column; align-items:center; gap:0.5rem; color:var(--muted); font-size:0.7rem; letter-spacing:0.2em; }
-  .scroll-line { width:1px; height:40px; background:linear-gradient(transparent, var(--purple)); }
+  /* Mouse-warp title */
+  .hero-title-wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:.15em;margin-bottom:1.5rem}
+  .hero-char{font-family:'Clash Display',sans-serif;font-weight:700;font-size:clamp(3rem,8vw,6.5rem);line-height:1.05;display:inline-block;transition:transform .15s ease-out,color .15s ease-out,text-shadow .15s ease-out;will-change:transform}
+  .hero-char.a{color:var(--cyan)}.hero-char.b{color:#fff}.hero-char.c{color:var(--purple)}
+
+  .hero-tagline{font-size:clamp(.9rem,1.8vw,1.15rem);color:var(--muted);letter-spacing:.3em;text-transform:uppercase;margin-bottom:3rem;text-align:center;transition:letter-spacing .3s}
+  .hero-tagline:hover{letter-spacing:.5em}
+
+  .stats-row{display:flex;gap:2rem;flex-wrap:wrap;justify-content:center}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem 2.5rem;text-align:center;backdrop-filter:blur(12px);transition:all .4s;position:relative;overflow:hidden;min-width:200px;cursor:pointer}
+  .stat-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at var(--mx,50%) var(--my,50%),var(--glow),transparent 70%);opacity:0;transition:opacity .4s}
+  .stat-card:hover::before{opacity:1}
+  .stat-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-4px)}
+  .stat-number{font-family:'Clash Display',sans-serif;font-weight:700;font-size:2.5rem;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .stat-label{color:var(--muted);font-size:.85rem;margin-top:.5rem;text-transform:uppercase;letter-spacing:.1em}
+  .stat-badge{color:var(--green);font-size:.75rem;margin-top:.75rem}
+
+  .scroll-indicator{position:absolute;bottom:2rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--muted);font-size:.7rem;letter-spacing:.2em}
+  .scroll-line{width:1px;height:40px;background:linear-gradient(transparent,var(--purple))}
 
   /* Sections */
-  .section-label { color:var(--purple); font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.2em; margin-bottom:1rem; }
-  .section-title { font-family:'Clash Display',sans-serif; font-weight:800; font-size:clamp(2rem, 5vw, 3.5rem); margin-bottom:1rem; text-align:center; }
-  .section-desc { color:var(--muted); text-align:center; max-width:600px; line-height:1.7; font-size:1.05rem; margin-bottom:3rem; }
+  .section-label{color:var(--purple);font-family:'DM Mono',monospace;font-size:.75rem;letter-spacing:.2em;margin-bottom:1rem}
+  .section-title{font-family:'Clash Display',sans-serif;font-weight:700;font-size:clamp(2rem,5vw,3.5rem);margin-bottom:1rem;text-align:center}
+  .section-desc{color:var(--muted);text-align:center;max-width:600px;line-height:1.7;font-size:1.05rem;margin-bottom:3rem}
 
-  .counter-grid { display:flex; gap:3rem; flex-wrap:wrap; justify-content:center; }
-  .counter-item { text-align:center; min-width:140px; }
-  .counter-value { font-family:'Clash Display',sans-serif; font-weight:900; font-size:clamp(3rem, 6vw, 5rem); background:linear-gradient(135deg, var(--cyan), var(--green)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-  .counter-unit { color:var(--muted); font-size:0.9rem; margin-top:0.5rem; text-transform:uppercase; letter-spacing:0.1em; }
+  .counter-grid{display:flex;gap:3rem;flex-wrap:wrap;justify-content:center}
+  .counter-item{text-align:center;min-width:140px}
+  .counter-value{font-family:'Clash Display',sans-serif;font-weight:700;font-size:clamp(3rem,6vw,5rem);background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .counter-unit{color:var(--muted);font-size:.9rem;margin-top:.5rem;text-transform:uppercase;letter-spacing:.1em}
 
-  .timeline { display:flex; gap:0; justify-content:center; align-items:flex-end; height:200px; max-width:600px; margin:2rem auto 0; }
-  .timeline-bar-wrap { display:flex; flex-direction:column; align-items:center; flex:1; }
-  .timeline-bar { width:60px; background:linear-gradient(180deg, var(--purple), var(--cyan)); border-radius:6px 6px 0 0; height:0; transition:height 2s cubic-bezier(.22,1,.36,1); }
-  .timeline-label { color:var(--muted); font-size:0.75rem; margin-top:0.75rem; }
+  .timeline{display:flex;gap:0;justify-content:center;align-items:flex-end;height:200px;max-width:600px;margin:2rem auto 0}
+  .timeline-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1}
+  .timeline-bar{width:60px;background:linear-gradient(180deg,var(--purple),var(--cyan));border-radius:6px 6px 0 0;height:0;transition:height 2s cubic-bezier(.22,1,.36,1)}
+  .timeline-label{color:var(--muted);font-size:.75rem;margin-top:.75rem}
 
-  .stat-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:1.5rem; max-width:900px; width:100%; }
-  .stat-box { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2rem; text-align:center; backdrop-filter:blur(12px); transition:all .3s; cursor:pointer; }
-  .stat-box:hover { border-color:rgba(108,92,231,0.3); transform:scale(1.03); }
-  .stat-box-num { font-family:'Clash Display',sans-serif; font-weight:900; font-size:2.5rem; color:var(--cyan); }
-  .stat-box-label { color:var(--muted); font-size:0.85rem; margin-top:0.5rem; }
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;max-width:900px;width:100%}
+  .stat-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;text-align:center;backdrop-filter:blur(12px);transition:all .3s;cursor:pointer}
+  .stat-box:hover{border-color:rgba(108,92,231,.3);transform:scale(1.03)}
+  .stat-box-num{font-family:'Clash Display',sans-serif;font-weight:700;font-size:2.5rem;color:var(--cyan)}
+  .stat-box-label{color:var(--muted);font-size:.85rem;margin-top:.5rem}
 
-  .pipeline-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:1.5rem; max-width:1000px; width:100%; }
-  .pipeline-card { background:var(--card); border:1px solid var(--border); border-radius:20px; padding:2rem; backdrop-filter:blur(12px); transition:all .4s; position:relative; overflow:hidden; cursor:pointer; }
-  .pipeline-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, var(--purple), var(--cyan)); transform:scaleX(0); transition:transform .4s; }
-  .pipeline-card:hover::before { transform:scaleX(1); }
-  .pipeline-card:hover { border-color:rgba(108,92,231,0.3); transform:translateY(-4px); }
-  .pipeline-step { font-family:'DM Mono',monospace; color:var(--purple); font-size:0.7rem; letter-spacing:0.2em; margin-bottom:0.75rem; }
-  .pipeline-title { font-family:'Clash Display',sans-serif; font-weight:700; font-size:1.4rem; margin-bottom:0.5rem; }
-  .pipeline-desc { color:var(--muted); font-size:0.9rem; line-height:1.6; }
+  .pipeline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;max-width:1000px;width:100%}
+  .pipeline-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem;backdrop-filter:blur(12px);transition:all .4s;position:relative;overflow:hidden;cursor:pointer}
+  .pipeline-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--cyan));transform:scaleX(0);transition:transform .4s}
+  .pipeline-card:hover::before{transform:scaleX(1)}
+  .pipeline-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-4px)}
+  .pipeline-step{font-family:'DM Mono',monospace;color:var(--purple);font-size:.7rem;letter-spacing:.2em;margin-bottom:.75rem}
+  .pipeline-title{font-family:'Clash Display',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:.5rem}
+  .pipeline-desc{color:var(--muted);font-size:.9rem;line-height:1.6}
 
-  .cta-terminal { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:2rem 3rem; max-width:650px; width:100%; text-align:left; font-family:'DM Mono',monospace; }
-  .cta-terminal-dots { display:flex; gap:8px; margin-bottom:1.2rem; }
-  .cta-terminal-dots span { width:12px; height:12px; border-radius:50%; }
-  .cta-terminal-dots span:nth-child(1){background:#ff5f57} span:nth-child(2){background:#febc2e} span:nth-child(3){background:#28c840}
-  .cta-prompt { color:var(--purple); }
-  .cta-typing { color:var(--white); margin-bottom:1rem; min-height:2rem; display:inline-block; }
-  .cta-typing::after { content:'█'; animation:blink 1s infinite; color:var(--green); }
-  .cta-output { color:var(--green); font-size:0.85rem; line-height:1.8; }
+  .cta-terminal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem 3rem;max-width:650px;width:100%;text-align:left;font-family:'DM Mono',monospace}
+  .cta-terminal-dots{display:flex;gap:8px;margin-bottom:1.2rem}
+  .cta-terminal-dots span{width:12px;height:12px;border-radius:50%}
+  .cta-terminal-dots span:nth-child(1){background:#ff5f57}span:nth-child(2){background:#febc2e}span:nth-child(3){background:#28c840}
+  .cta-prompt{color:var(--purple)}
+  .cta-typing{color:var(--white);margin-bottom:1rem;min-height:2rem;display:inline-block}
+  .cta-typing::after{content:'█';animation:blink 1s infinite;color:var(--green)}
+  .cta-output{color:var(--green);font-size:.85rem;line-height:1.8}
 
-  .cta-button { display:inline-block; font-family:'Clash Display',sans-serif; font-weight:700; font-size:1.1rem; padding:1rem 3rem; border-radius:50px; background:linear-gradient(135deg, var(--purple), var(--cyan)); color:#fff; text-decoration:none; margin-top:2rem; transition:all .3s; border:none; cursor:pointer; }
-  .cta-button:hover { transform:scale(1.05); box-shadow:0 0 40px rgba(108,92,231,0.4); }
+  .cta-button{display:inline-block;font-family:'Clash Display',sans-serif;font-weight:700;font-size:1.1rem;padding:1rem 3rem;border-radius:50px;background:linear-gradient(135deg,var(--purple),var(--cyan));color:#fff;text-decoration:none;margin-top:2rem;transition:all .3s;border:none;cursor:pointer}
+  .cta-button:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(108,92,231,.4)}
 
-  .footer { text-align:center; padding:3rem 2rem; color:var(--muted); font-size:0.8rem; border-top:1px solid var(--border); cursor:auto; }
-  .footer a { color:var(--muted); cursor:pointer; }
+  .footer{text-align:center;padding:3rem 2rem;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);cursor:auto}
+  .footer a{color:var(--muted);cursor:pointer}
 
-  .reveal { opacity:0; transform:translateY(40px); transition:opacity .8s, transform .8s cubic-bezier(.22,1,.36,1); }
-  .reveal.visible { opacity:1; transform:translateY(0); }
+  .reveal{opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s cubic-bezier(.22,1,.36,1)}
+  .reveal.visible{opacity:1;transform:translateY(0)}
 
-  @media (max-width:768px) {
-    .nav { padding:1rem; } .nav-links { gap:1rem; }
-    .stats-row { gap:1rem; } .stat-card { padding:1.5rem; min-width:140px; }
-    .counter-grid { gap:1.5rem; }
-    .cursor { display:none; } html { cursor:auto; }
-    .cta-terminal { padding:1.5rem; }
-    .timeline-bar { width:40px; }
+  /* Particle burst on terminal command */
+  .burst{position:fixed;pointer-events:none;z-index:99}
+  .burst-dot{position:absolute;width:4px;height:4px;border-radius:50%;animation:burst-out 1.2s ease-out forwards}
+  @keyframes burst-out{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--bx),var(--by)) scale(0)}}
+
+  @media(max-width:768px){
+    .nav{padding:1rem}.nav-links{gap:1rem}
+    .stats-row{gap:1rem}.stat-card{padding:1.5rem;min-width:140px}
+    .counter-grid{gap:1.5rem}
+    .cursor{display:none}html{cursor:auto}
+    .cta-terminal{padding:1.5rem}
+    .timeline-bar{width:40px}
+    .hero-terminal{max-width:90vw}
+    .hero-char{font-size:clamp(2rem,10vw,4rem)}
   }
-  @media (prefers-reduced-motion) {
-    * { animation-duration:0.01ms !important; transition-duration:0.01ms !important; }
-    #particles { display:none; }
+  @media(prefers-reduced-motion){
+    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+    #particles{display:none}
   }
 </style>
 </head>
@@ -168,7 +162,7 @@
   <div class="cursor-ring"></div>
 </div>
 
-<a href="#main" style="position:absolute;top:-100px;left:1rem;z-index:200;background:var(--purple);color:white;padding:0.5rem 1rem;border-radius:0 0 8px 8px" onfocus="this.style.top='0'">Skip to content</a>
+<a href="#main" style="position:absolute;top:-100px;left:1rem;z-index:200;background:var(--purple);color:white;padding:.5rem 1rem;border-radius:0 0 8px 8px" onfocus="this.style.top='0'">Skip to content</a>
 
 <nav class="nav">
   <span class="nav-logo">AI NATIVE</span>
@@ -184,9 +178,22 @@
 
 <section class="hero" id="hero">
   <div class="hero-bg"><img src="img-hero.png" alt=""></div>
-  <div class="hero-typing" id="hero-typing"></div>
-  <h1 class="hero-title reveal"><span class="a">AI</span> <span class="b">NATIVE</span> <span class="c">STUDIO</span></h1>
+
+  <!-- Interactive terminal -->
+  <div class="hero-terminal reveal" id="hero-term">
+    <div class="term-line"><span class="term-prompt">$</span> studio init --world fantasy-rpg</div>
+    <div class="term-line" style="color:var(--green)">Initializing engine... <span style="color:var(--muted)">v3.2.0</span></div>
+    <div class="term-line" style="color:var(--cyan)">✓ Assets pipeline online</div>
+    <div class="term-line" style="color:var(--cyan)">✓ Generation models loaded</div>
+    <div class="term-line" style="margin-top:.5rem"><span class="term-prompt">$</span> <input type="text" class="term-input" id="term-input" placeholder="type a command..." autocomplete="off" spellcheck="false"></div>
+  </div>
+
+  <div class="hero-title-wrap reveal" id="hero-title">
+    <span class="hero-char a">A</span><span class="hero-char a">I</span><span class="hero-char b"> </span><span class="hero-char b">N</span><span class="hero-char b">A</span><span class="hero-char b">T</span><span class="hero-char b">I</span><span class="hero-char b">V</span><span class="hero-char b">E</span><span class="hero-char b"> </span><span class="hero-char b">S</span><span class="hero-char b">T</span><span class="hero-char b">U</span><span class="hero-char b">D</span><span class="hero-char b">I</span><span class="hero-char c">O</span>
+  </div>
+
   <p class="hero-tagline reveal">Build worlds. Break rules. Ship fast.</p>
+
   <div class="stats-row reveal">
     <div class="stat-card"><div class="stat-number" id="stat-hours" data-target="48">0</div><div class="stat-label">Hours to Prototype</div><div class="stat-badge">▲ 12x faster than industry</div></div>
     <div class="stat-card"><div class="stat-number" id="stat-assets" data-target="5000">0</div><div class="stat-label">Assets per Project</div><div class="stat-badge">▲ AI-generated, human-curated</div></div>
@@ -206,9 +213,9 @@
   </div>
   <div class="timeline reveal" id="timeline">
     <div class="timeline-bar-wrap"><div class="timeline-bar tbar"></div><div class="timeline-label">Concept</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:0.3s"></div><div class="timeline-label">Generate</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:0.6s"></div><div class="timeline-label">Iterate</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:0.9s"></div><div class="timeline-label">Polish</div></div>
+    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:.3s"></div><div class="timeline-label">Generate</div></div>
+    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:.6s"></div><div class="timeline-label">Iterate</div></div>
+    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:.9s"></div><div class="timeline-label">Polish</div></div>
     <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:1.2s"></div><div class="timeline-label">Ship</div></div>
   </div>
 </section>
@@ -216,7 +223,7 @@
 <section id="scale">
   <div class="section-label reveal">SCALE</div>
   <h2 class="section-title reveal">5,000+ Assets<br>Per Project</h2>
-  <p class="section-desc reveal">Our AI pipeline generates thousands of production-ready assets — textures, 3D models, animations, sound effects, dialogue trees. All coherent. All consistent. All game-ready. No asset store browsing. No waiting on artists.</p>
+  <p class="section-desc reveal">Our AI pipeline generates thousands of production-ready assets — textures, 3D models, animations, sound effects, dialogue trees. All coherent. All consistent. All game-ready.</p>
   <div class="stat-grid reveal">
     <div class="stat-box"><div class="stat-box-num stat-odometer" id="stat-textures" data-target="3200">0</div><div class="stat-box-label">Textures</div></div>
     <div class="stat-box"><div class="stat-box-num stat-odometer" id="stat-models" data-target="850">0</div><div class="stat-box-label">3D Models</div></div>
@@ -231,9 +238,9 @@
   <p class="section-desc reveal">Four steps. Zero friction. From blank canvas to deployed game.</p>
   <div class="pipeline-grid reveal">
     <div class="pipeline-card"><div class="pipeline-step">STEP 01</div><div class="pipeline-title">Prompt</div><div class="pipeline-desc">Describe your game world in natural language. Characters, environments, mechanics. That's all it takes.</div></div>
-    <div class="pipeline-card"><div class="pipeline-step">STEP 02</div><div class="pipeline-title">Generate</div><div class="pipeline-desc">Our engine produces thousands of coherent assets. Textures, models, audio. All game-ready. All consistent.</div></div>
-    <div class="pipeline-card"><div class="pipeline-step">STEP 03</div><div class="pipeline-title">Iterate</div><div class="pipeline-desc">Tweak parameters. Remix styles. Fine-tune outputs. Change direction in seconds, not weeks.</div></div>
-    <div class="pipeline-card"><div class="pipeline-step">STEP 04</div><div class="pipeline-title">Deploy</div><div class="pipeline-desc">One click. Your game ships to web, mobile, desktop. Production-ready, instantly. No build pipelines.</div></div>
+    <div class="pipeline-card"><div class="pipeline-step">STEP 02</div><div class="pipeline-title">Generate</div><div class="pipeline-desc">Our engine produces thousands of coherent assets. Textures, models, audio. All game-ready.</div></div>
+    <div class="pipeline-card"><div class="pipeline-step">STEP 03</div><div class="pipeline-title">Iterate</div><div class="pipeline-desc">Tweak parameters. Remix styles. Change direction in seconds, not weeks.</div></div>
+    <div class="pipeline-card"><div class="pipeline-step">STEP 04</div><div class="pipeline-title">Deploy</div><div class="pipeline-desc">One click. Your game ships to web, mobile, desktop. Production-ready, instantly.</div></div>
   </div>
 </section>
 
@@ -241,14 +248,13 @@
   <div class="cta-terminal reveal">
     <div class="cta-terminal-dots"><span></span><span></span><span></span></div>
     <div><span class="cta-prompt">$</span> studio init --world fantasy-rpg</div>
-    <div style="margin-top:1rem;"></div>
+    <div style="margin-top:1rem"></div>
     <div class="cta-output">Initializing AI Native Studio pipeline…</div>
     <div class="cta-output" style="color:var(--cyan)">✓ 3,247 textures generated</div>
     <div class="cta-output" style="color:var(--cyan)">✓ 856 3D models generated</div>
-    <div class="cta-output" style="color:var(--cyan)">✓ Audio engine configured</div>
     <div class="cta-output" style="color:var(--cyan)">✓ Deployment targets: web, iOS, Android</div>
-    <div class="cta-output" style="margin-top:0.5rem;">Ready to ship. Estimated time: 48h</div>
-    <div style="margin-top:1rem;"><span class="cta-prompt">$</span> <span class="cta-typing" id="cta-typewriter"></span></div>
+    <div class="cta-output" style="margin-top:.5rem">Ready to ship. Estimated time: 48h</div>
+    <div style="margin-top:1rem"><span class="cta-prompt">$</span> <span class="cta-typing" id="cta-typewriter"></span></div>
   </div>
   <h2 class="section-title reveal" style="margin-top:3rem">The Future<br>Is Generated</h2>
   <p class="section-desc reveal">Stop waiting for artists. Stop wrestling with engines. Build the game you've been dreaming about. Today.</p>
@@ -261,117 +267,110 @@
 
 <script>
 // ── PARTICLE SYSTEM ──
-const canvas = document.getElementById('particles');
-const ctx = canvas.getContext('2d');
-let W, H, particles = [];
-const PARTICLE_COUNT = 120;
-
-function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-resize(); window.addEventListener('resize', resize);
-
-class Particle {
-  constructor() { this.reset(true); }
-  reset(init) {
-    this.x = init ? Math.random() * W : Math.random() * W;
-    this.y = init ? Math.random() * H : H + 20;
-    this.size = Math.random() * 2 + 0.5;
-    this.speed = Math.random() * 0.5 + 0.1;
-    this.opacity = Math.random() * 0.4 + 0.1;
-    this.color = Math.random() < 0.5 ? '108,92,231' : '0,210,255';
-  }
-  update(mx, my) {
-    this.y -= this.speed;
-    // Flee cursor
-    const dx = this.x - mx, dy = this.y - my, dist = Math.sqrt(dx*dx+dy*dy);
-    if (dist < 120) { this.x += (dx/dist) * 1.5; this.y += (dy/dist) * 1.5; }
-    if (this.y < -10) this.reset(false);
-  }
-  draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fillStyle = `rgba(${this.color},${this.opacity})`; ctx.fill(); }
+const canvas=document.getElementById('particles'),ctx=canvas.getContext('2d');
+let W,H,particles=[],pmx=0,pmy=0;
+const PC=120;
+function rs(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+rs();window.addEventListener('resize',rs);
+class P{
+  constructor(){this.rst(true)}
+  rst(i){this.x=i?Math.random()*W:Math.random()*W;this.y=i?Math.random()*H:H+20;this.s=Math.random()*2+.5;this.sp=Math.random()*.5+.1;this.o=Math.random()*.4+.1;this.c=Math.random()<.5?'108,92,231':'0,210,255'}
+  upd(mx,my){this.y-=this.sp;const dx=this.x-mx,dy=this.y-my,dist=Math.sqrt(dx*dx+dy*dy);if(dist<120){this.x+=dx/dist*1.5;this.y+=dy/dist*1.5}if(this.y<-10)this.rst(false)}
+  draw(){ctx.beginPath();ctx.arc(this.x,this.y,this.s,0,Math.PI*2);ctx.fillStyle=`rgba(${this.c},${this.o})`;ctx.fill()}
 }
+for(let i=0;i<PC;i++)particles.push(new P());
+document.addEventListener('mousemove',e=>{pmx=e.clientX;pmy=e.clientY});
+(function ap(){ctx.clearRect(0,0,W,H);particles.forEach(p=>{p.upd(pmx,pmy);p.draw()});for(let i=0;i<particles.length;i++)for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<100){ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.strokeStyle=`rgba(108,92,231,${.06*(1-dist/100)})`;ctx.stroke()}}requestAnimationFrame(ap)})();
 
-for (let i = 0; i < PARTICLE_COUNT; i++) particles.push(new Particle());
+// ── CURSOR ──
+const cursor=document.getElementById('cursor'),dot=cursor.querySelector('.cursor-dot'),ring=cursor.querySelector('.cursor-ring');
+let cx=W/2,cy=H/2,tx=cx,ty=cy;
+document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY});
+document.querySelectorAll('a,button,.stat-card,.stat-box,.pipeline-card,.cta-button').forEach(el=>{el.addEventListener('mouseenter',()=>cursor.classList.add('hover'));el.addEventListener('mouseleave',()=>cursor.classList.remove('hover'))});
+(function uc(){cx+=(tx-cx)*.18;cy+=(ty-cy)*.18;cursor.style.transform=`translate(${cx}px,${cy}px)`;requestAnimationFrame(uc)})();
+document.querySelectorAll('.nav,.nav *,.footer,.footer *').forEach(el=>el.style.cursor='auto');
 
-let pmx = W/2, pmy = H/2;
-document.addEventListener('mousemove', e => { pmx = e.clientX; pmy = e.clientY; });
-
-function animateParticles() {
-  ctx.clearRect(0, 0, W, H);
-  particles.forEach(p => { p.update(pmx, pmy); p.draw(); });
-  // Connect nearby particles
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i+1; j < particles.length; j++) {
-      const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
-      const dist = Math.sqrt(dx*dx+dy*dy);
-      if (dist < 100) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(108,92,231,${0.06 * (1 - dist/100)})`; ctx.stroke(); }
+// ── INTERACTIVE TERMINAL ──
+const termInput=document.getElementById('term-input');
+const commands={
+  'generate':'Generating game world...',
+  'build':'Compiling assets...',
+  'ship':'Deploying to production...',
+  'help':'Commands: generate | build | ship | status | clear | help',
+  'status':'Engine: ONLINE | Assets: 12,847 | Projects: 3 active',
+  'clear':'',
+  'whoami':'AI Native Studio | v3.2.0 | Est. 2026'
+};
+termInput.addEventListener('keydown',function(e){
+  if(e.key==='Enter'){
+    const cmd=this.value.trim().toLowerCase();
+    const resp=commands[cmd]||`Unknown command: "${cmd}". Type "help" for available commands.`;
+    this.value='';this.blur();
+    // Add output line
+    const out=document.createElement('div');
+    out.className='term-line term-output';
+    out.style.color=cmd==='clear'?'transparent':'var(--cyan)';
+    out.textContent=resp;
+    this.parentElement.after(out);
+    requestAnimationFrame(()=>out.classList.add('show'));
+    // Burst effect
+    for(let i=0;i<20;i++){
+      const d=document.createElement('div');
+      d.className='burst-dot';
+      d.style.cssText=`left:${cx}px;top:${cy}px;--bx:${(Math.random()-.5)*200}px;--by:${(Math.random()-.5)*200}px;background:${Math.random()<.5?'var(--purple)':'var(--cyan)'};animation-delay:${Math.random()*.3}s`;
+      document.body.appendChild(d);
+      setTimeout(()=>d.remove(),1500);
     }
+    // Scroll terminal to bottom
+    const term=document.getElementById('hero-term');
+    term.scrollTop=term.scrollHeight;
+    setTimeout(()=>this.focus(),300);
   }
-  requestAnimationFrame(animateParticles);
-}
-animateParticles();
+});
+// Auto-focus terminal on page load
+setTimeout(()=>termInput.focus(),1500);
 
-// ── CUSTOM CURSOR ──
-const cursor = document.getElementById('cursor'), dot = cursor.querySelector('.cursor-dot'), ring = cursor.querySelector('.cursor-ring');
-let cx = W/2, cy = H/2, tx = cx, ty = cy;
-document.addEventListener('mousemove', e => { tx = e.clientX; ty = e.clientY; });
-
-// Magnetic hover
-document.querySelectorAll('a, button, .stat-card, .stat-box, .pipeline-card, .cta-button').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+// ── MOUSE-WARP TITLE ──
+const chars=document.querySelectorAll('.hero-char');
+document.addEventListener('mousemove',e=>{
+  chars.forEach(c=>{
+    const rect=c.getBoundingClientRect();
+    const cx2=rect.left+rect.width/2,cy2=rect.top+rect.height/2;
+    const dx=e.clientX-cx2,dy=e.clientY-cy2;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const maxDist=150;
+    if(dist<maxDist){
+      const force=(1-dist/maxDist);
+      const tx=(dx/dist)*force*12,ty=(dy/dist)*force*12;
+      const scale=1+force*.15;
+      const glow=force*15;
+      c.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;
+      c.style.textShadow=`0 0 ${glow}px currentColor`;
+    }else{
+      c.style.transform='translate(0,0) scale(1)';
+      c.style.textShadow='none';
+    }
+  });
 });
 
-function updateCursor() {
-  cx += (tx - cx) * 0.18; cy += (ty - cy) * 0.18;
-  cursor.style.transform = `translate(${cx}px, ${cy}px)`;
-  requestAnimationFrame(updateCursor);
-}
-updateCursor();
-
-// Nav items get native cursor
-document.querySelectorAll('.nav, .nav *, .footer, .footer *').forEach(el => el.style.cursor = 'auto');
-
 // ── REVEAL ──
-const revealObs = new IntersectionObserver(entries => {
-  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-}, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
-document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15,rootMargin:'0px 0px -40px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
 
-// ── TYPING ──
-const ht = document.getElementById('hero-typing');
-const phrases = ['Generating world...', 'Loading assets...', 'Initializing engine...', 'AI NATIVE STUDIO'];
-let pi = 0, ci = 0, deleting = false, spd = 80;
-(function type() {
-  const cur = phrases[pi];
-  if (!deleting) { ht.textContent = cur.substring(0, ++ci); if (ci === cur.length) { if (pi < phrases.length-1) { deleting = true; spd = 40; } return; } }
-  else { ht.textContent = cur.substring(0, --ci); if (ci === 0) { deleting = false; pi = ++pi % phrases.length; spd = 80; } }
-  setTimeout(type, spd);
-})();
-
-// CTA typewriter
-const ct = document.getElementById('cta-typewriter');
-const ctp = 'the future is generated';
-let cti = 0, cts = false;
-new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting && !cts) { cts = true; (function t() { if (cti < ctp.length) { ct.textContent = ctp.substring(0, ++cti); setTimeout(t, 100); } })(); }
-}, { threshold: 0.5 }).observe(document.getElementById('cta'));
+// ── CTA TYPEWRITER ──
+const ct=document.getElementById('cta-typewriter'),ctp='the future is generated';
+let cti=0,cts=false;
+new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&!cts){cts=true;(function t(){if(cti<ctp.length){ct.textContent=ctp.substring(0,++cti);setTimeout(t,100)}})()}},{threshold:.5}).observe(document.getElementById('cta'));
 
 // ── COUNTERS ──
-function animateNum(el, suffix='') {
-  const tgt = parseInt(el.dataset.target), dur = 2000, start = performance.now();
-  (function u(now) { const p = Math.min((now-start)/dur, 1), e = 1-Math.pow(1-p, 3); el.textContent = Math.round(e*tgt).toLocaleString()+suffix; if (p<1) requestAnimationFrame(u); })(start);
-}
-const co = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { animateNum(e.target); co.unobserve(e.target); } }); }, { threshold: 0.4 });
-document.querySelectorAll('.counter-number, .stat-odometer').forEach(el => co.observe(el));
+function an(el,sf=''){const tgt=parseInt(el.dataset.target),dur=2000,start=performance.now();(function u(now){const p=Math.min((now-start)/dur,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(e*tgt).toLocaleString()+sf;if(p<1)requestAnimationFrame(u)})(start)}
+const co=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){an(e.target);co.unobserve(e.target)}})},{threshold:.4});
+document.querySelectorAll('.counter-number,.stat-odometer').forEach(el=>co.observe(el));
+const so=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){an(e.target,e.target.id==='stat-assets'?'+':e.target.id==='stat-rate'?'%':'');so.unobserve(e.target)}})},{threshold:.3});
+['stat-hours','stat-assets','stat-rate'].forEach(id=>{const el=document.getElementById(id);if(el)so.observe(el)});
+new IntersectionObserver(entries=>{if(entries[0].isIntersecting){document.querySelectorAll('.tbar').forEach((b,i)=>{b.style.height=['40%','60%','75%','90%','100%'][i]})}},{threshold:.4}).observe(document.getElementById('timeline'));
 
-const so = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) { animateNum(e.target, e.target.id==='stat-assets'?'+':e.target.id==='stat-rate'?'%':''); so.unobserve(e.target); } }); }, { threshold: 0.3 });
-['stat-hours','stat-assets','stat-rate'].forEach(id => { const el = document.getElementById(id); if (el) so.observe(el); });
-
-// Timeline
-new IntersectionObserver(entries => {
-  if (entries[0].isIntersecting) { document.querySelectorAll('.tbar').forEach((b,i) => { b.style.height = ['40%','60%','75%','90%','100%'][i]; }); }
-}, { threshold: 0.4 }).observe(document.getElementById('timeline'));
-
-console.log('%c AI Native Studio %c v3.0 %c Ready', 'color:#6C5CE7;font-size:1.2em', 'color:#00D2FF', 'color:#00FF88');
+console.log('%c AI Native Studio %c v6 %c — Try typing in the terminal!','color:#6C5CE7;font-size:1.2em','color:#00D2FF','color:#00FF88');
 </script>
 </body>
 </html>
