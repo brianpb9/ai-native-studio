@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native Studio — Generate Worlds</title>
+<meta name="description" content="AI Native Studio — The first AI-native game studio. From concept to prototype in 48 hours. 5000+ assets per project.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0A0F;
+    --bg-card: rgba(255,255,255,0.03);
+    --purple: #6C5CE7;
+    --cyan: #00D2FF;
+    --green: #00FF88;
+    --white: #E8E8F0;
+    --muted: #7A7A8C;
+    --glass-border: rgba(255,255,255,0.06);
+    --glass-glow: rgba(108,92,231,0.15);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    cursor: none;
+  }
+
+  /* Grid Background */
+  body {
+    background:
+      linear-gradient(rgba(108,92,231,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,92,231,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    background-position: center center;
+    overflow-x: hidden;
+  }
+
+  /* Custom Cursor */
+  .cursor-dot, .cursor-ring, .cursor-trail {
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 10000;
+    will-change: transform;
+  }
+  .cursor-dot {
+    width: 6px; height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 12px var(--cyan), 0 0 4px var(--cyan);
+    transition: width 0.2s, height 0.2s, background 0.2s;
+  }
+  .cursor-dot.hover {
+    width: 12px; height: 12px;
+    background: var(--purple);
+    box-shadow: 0 0 20px var(--purple), 0 0 8px var(--purple);
+  }
+  .cursor-ring {
+    width: 32px; height: 32px;
+    border: 1.5px solid rgba(0,210,255,0.4);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, border-color 0.3s;
+  }
+  .cursor-ring.hover {
+    width: 48px; height: 48px;
+    border-color: rgba(108,92,231,0.6);
+  }
+  .cursor-trail {
+    width: 4px; height: 4px;
+    background: var(--purple);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.3;
+    transition: opacity 0.4s;
+  }
+
+  /* Three.js Canvas */
+  #bg-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Main Content */
+  .content {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Glass Card */
+  .glass {
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    position: relative;
+    overflow: hidden;
+  }
+  .glass::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -50%;
+    width: 200%; height: 100%;
+    background: linear-gradient(105deg, transparent 40%, rgba(108,92,231,0.04) 45%, rgba(0,210,255,0.04) 50%, rgba(108,92,231,0.04) 55%, transparent 60%);
+    animation: glassLightLeak 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .glass::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: calc(var(--radius) - 1px);
+    border: 1px solid rgba(108,92,231,0.12);
+    pointer-events: none;
+  }
+  @keyframes glassLightLeak {
+    0%, 100% { transform: translateX(-10%); }
+    50% { transform: translateX(10%); }
+  }
+
+  /* Glitch Text */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+  }
+  .glitch.active::before {
+    color: var(--cyan);
+    animation: glitchShift 0.3s ease;
+    clip-path: polygon(0 20%, 100% 20%, 100% 40%, 0 40%);
+    opacity: 0.8;
+  }
+  .glitch.active::after {
+    color: var(--purple);
+    animation: glitchShift 0.3s ease 0.05s;
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+    opacity: 0.8;
+  }
+  @keyframes glitchShift {
+    0% { transform: translate(0); }
+    20% { transform: translate(-3px, 2px); }
+    40% { transform: translate(3px, -1px); }
+    60% { transform: translate(-2px, -2px); }
+    80% { transform: translate(1px, 1px); }
+    100% { transform: translate(0); }
+  }
+
+  /* ===== ACT 1: HERO ===== */
+  .hero {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2rem;
+  }
+  .hero-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.12;
+    filter: blur(1px) saturate(0.6);
+    pointer-events: none;
+    z-index: 0;
+    mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 30%, transparent 70%);
+  }
+  .hero-terminal {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--green);
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 1.5rem;
+    letter-spacing: 0.05em;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-terminal .prefix {
+    color: var(--muted);
+  }
+  .hero-terminal .typing {
+    color: var(--green);
+    border-right: 2px solid var(--green);
+    animation: blink 0.8s step-end infinite;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  @keyframes blink {
+    50% { border-color: transparent; }
+  }
+  .hero-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    text-align: center;
+    background: linear-gradient(135deg, var(--white) 0%, var(--cyan) 50%, var(--purple) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+    color: var(--muted);
+    text-align: center;
+    letter-spacing: 0.1em;
+    max-width: 600px;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-metrics {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+  }
+  .metric-card {
+    min-width: 140px;
+    padding: 1.2rem 1.5rem;
+  }
+  .metric-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--cyan);
+    line-height: 1;
+  }
+  .metric-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.4rem;
+  }
+  .metric-change {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green);
+    margin-top: 0.3rem;
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.6;
+    z-index: 1;
+  }
+  .scroll-indicator span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--purple), transparent);
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; height: 40px; }
+    50% { opacity: 1; height: 60px; }
+  }
+
+  /* Wireframe Globe Container */
+  .globe-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    pointer-events: none;
+    opacity: 0.35;
+  }
+
+  /* ===== ACT 2: SPEED ===== */
+  .speed-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+    position: relative;
+  }
+  .speed-content {
+    max-width: 900px;
+    width: 100%;
+  }
+  .speed-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--green);
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.2);
+    padding: 0.4rem 1rem;
+    border-radius: 100px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .speed-heading {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+  .speed-heading .highlight {
+    background: linear-gradient(135deg, var(--cyan), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .speed-desc {
+    font-size: 1.1rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 600px;
+    margin-bottom: 3rem;
+  }
+  .counter-display {
+    display: flex;
+    gap: 3rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+  }
+  .counter-item {
+    text-align: center;
+  }
+  .counter-number {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(3rem, 6vw, 5rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .counter-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+  }
+  .timeline-viz {
+    display: flex;
+    gap: 0;
+    align-items: flex-end;
+    height: 120px;
+    margin-top: 1rem;
+  }
+  .timeline-bar {
+    flex: 1;
+    border-radius: 6px 6px 0 0;
+    position: relative;
+    min-width: 8px;
+    transition: height 1s ease;
+  }
+  .timeline-bar:nth-child(1) { background: linear-gradient(to top, var(--purple), var(--cyan)); }
+  .timeline-bar:nth-child(2) { background: linear-gradient(to top, var(--purple), var(--green)); }
+  .timeline-bar:nth-child(3) { background: linear-gradient(to top, var(--cyan), var(--green)); }
+  .timeline-bar:nth-child(4) { background: linear-gradient(to top, var(--purple), var(--purple), var(--cyan)); }
+  .timeline-bar:nth-child(5) { background: linear-gradient(to top, var(--cyan), var(--purple), var(--green)); }
+
+  /* ===== ACT 3: SCALE ===== */
+  .scale-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+  }
+  .scale-content {
+    max-width: 1000px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  .scale-text h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+  }
+  .scale-text h2 .highlight {
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .scale-text p {
+    color: var(--muted);
+    line-height: 1.7;
+    font-size: 1.05rem;
+  }
+  .scale-viz {
+    position: relative;
+  }
+  .particle-burst {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .burst-core {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--purple), transparent);
+    animation: corePulse 3s ease-in-out infinite;
+  }
+  @keyframes corePulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+  .burst-particle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: burstFloat 4s ease-in-out infinite;
+  }
+  @keyframes burstFloat {
+    0% { transform: translate(0, 0) scale(1); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+  .scale-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+  .scale-stat {
+    padding: 1.2rem;
+    text-align: center;
+  }
+  .scale-stat .value {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--cyan);
+  }
+  .scale-stat .label {
+    font-size: 0.7rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.3rem;
+  }
+
+  /* ===== ACT 4: PIPELINE ===== */
+  .pipeline-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+  }
+  .pipeline-content {
+    max-width: 1100px;
+    width: 100%;
+  }
+  .pipeline-header {
+    text-align: center;
+    margin-bottom: 4rem;
+  }
+  .pipeline-header h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+  }
+  .pipeline-header h2 .highlight {
+    background: linear-gradient(135deg, var(--cyan), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .pipeline-header p {
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+  .pipeline-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    position: relative;
+  }
+  .pipeline-connector {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--purple), var(--cyan), var(--green), var(--purple));
+    z-index: 0;
+    opacity: 0.3;
+  }
+  .pipeline-dot {
+    position: absolute;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    background: var(--cyan);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 12px var(--cyan);
+    animation: dotTravel 4s linear infinite;
+    z-index: 1;
+  }
+  @keyframes dotTravel {
+    0% { left: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: 100%; opacity: 0; }
+  }
+  .pipeline-step {
+    position: relative;
+    z-index: 1;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .pipeline-step:hover {
+    transform: translateY(-4px);
+    border-color: rgba(108,92,231,0.3);
+  }
+  .step-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+  .step-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--purple);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .step-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .step-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ===== ACT 5: CTA ===== */
+  .cta-section {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+    position: relative;
+  }
+  .cta-terminal {
+    width: 100%;
+    max-width: 640px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+  }
+  .terminal-chrome {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    background: rgba(0,0,0,0.3);
+  }
+  .chrome-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .chrome-dot.red { background: #FF5F56; }
+  .chrome-dot.yellow { background: #FFBD2E; }
+  .chrome-dot.green { background: #27C93F; }
+  .terminal-body {
+    padding: 1.5rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.8;
+  }
+  .terminal-line {
+    color: var(--muted);
+  }
+  .terminal-line .cmd {
+    color: var(--green);
+  }
+  .terminal-line .output {
+    color: var(--cyan);
+  }
+  .terminal-line .cursor-blink {
+    display: inline-block;
+    width: 8px;
+    height: 1.1em;
+    background: var(--green);
+    animation: blink 0.8s step-end infinite;
+    vertical-align: middle;
+    margin-left: 2px;
+  }
+  .cta-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    text-align: center;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--white), var(--cyan), var(--green));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .cta-subtitle {
+    font-size: 1.1rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+  }
+  .cta-button {
+    display: inline-block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 1rem 2.5rem;
+    border-radius: 100px;
+    background: linear-gradient(135deg, var(--purple), var(--cyan));
+    color: var(--white);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 24px rgba(108,92,231,0.3);
+    cursor: none;
+  }
+  .cta-button:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 40px rgba(108,92,231,0.5);
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .scale-content {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+    .pipeline-steps {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .pipeline-connector, .pipeline-dot { display: none; }
+    .hero-metrics { gap: 1rem; }
+    .metric-card { min-width: 120px; padding: 1rem; }
+    .counter-display { gap: 1.5rem; }
+    .globe-container { width: 300px; height: 300px; }
+    body { cursor: auto; }
+    .cursor-dot, .cursor-ring, .cursor-trail { display: none; }
+  }
+  @media (max-width: 480px) {
+    .pipeline-steps {
+      grid-template-columns: 1fr;
+    }
+    .scale-stats { grid-template-columns: 1fr; }
+  }
+
+  /* Fade-in animation for sections */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor-dot" id="cursor-dot"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<div class="cursor-trail" id="cursor-trail-1" style="transition-delay: 0.05s;"></div>
+<div class="cursor-trail" id="cursor-trail-2" style="transition-delay: 0.1s;"></div>
+<div class="cursor-trail" id="cursor-trail-3" style="transition-delay: 0.15s;"></div>
+
+<canvas id="bg-canvas"></canvas>
+
+<div class="content">
+
+  <!-- ===== ACT 1: HERO ===== -->
+  <section class="hero" id="hero">
+    <img class="hero-bg-img" src="img-hero.png" alt="" aria-hidden="true" loading="eager" decoding="async">
+    <div class="hero-terminal">
+      <span class="prefix">$</span>
+      <span class="typing" id="hero-typing"></span>
+    </div>
+    <h1 class="hero-title glitch" data-text="AI NATIVE STUDIO" id="hero-title">AI NATIVE STUDIO</h1>
+    <p class="hero-subtitle">BUILD WORLDS. BREAK RULES. SHIP FAST.</p>
+    <div class="hero-metrics">
+      <div class="metric-card glass reveal">
+        <div class="metric-value" data-odometer="48" data-suffix="h">0h</div>
+        <div class="metric-label">Concept to Prototype</div>
+        <div class="metric-change">▲ 12x faster</div>
+      </div>
+      <div class="metric-card glass reveal">
+        <div class="metric-value" data-odometer="5000" data-suffix="+">0+</div>
+        <div class="metric-label">Assets Generated</div>
+        <div class="metric-change">▲ per project</div>
+      </div>
+      <div class="metric-card glass reveal">
+        <div class="metric-value" data-odometer="98" data-suffix="%">0%</div>
+        <div class="metric-label">Automation Rate</div>
+        <div class="metric-change">▲ AI-native pipeline</div>
+      </div>
+    </div>
+    <div class="scroll-indicator">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- ===== ACT 2: SPEED ===== -->
+  <section class="speed-section" id="speed">
+    <div class="speed-content">
+      <div class="speed-badge reveal">⚡ Velocity</div>
+      <h2 class="speed-heading reveal">
+        <span class="highlight">48 Hours</span><br>
+        Concept to Prototype
+      </h2>
+      <p class="speed-desc reveal">
+        Traditional studios take months. We ship game-ready prototypes in two days flat.
+        AI handles the grunt work. Your team focuses on creative direction.
+      </p>
+      <div class="counter-display reveal">
+        <div class="counter-item">
+          <div class="counter-number" id="counter-hours" data-target="48">0</div>
+          <div class="counter-unit">Hours to Prototype</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-number" id="counter-iterate" data-target="12">0</div>
+          <div class="counter-unit">Iterations per Day</div>
+        </div>
+        <div class="counter-item">
+          <div class="counter-number" id="counter-ship" data-target="5">0</div>
+          <div class="counter-unit">Days to Production</div>
+        </div>
+      </div>
+      <div class="timeline-viz reveal" id="timeline-viz">
+        <div class="timeline-bar" style="height: 0%;"><div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);white-space:nowrap;padding-bottom:4px;">Day 1</div></div>
+        <div class="timeline-bar" style="height: 0%;"><div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);white-space:nowrap;padding-bottom:4px;">Day 2</div></div>
+        <div class="timeline-bar" style="height: 0%;"><div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--muted);white-space:nowrap;padding-bottom:4px;">Day 3</div></div>
+        <div class="timeline-bar" style="height: 0%;"><div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--green);white-space:nowrap;padding-bottom:4px;">Day 4</div></div>
+        <div class="timeline-bar" style="height: 0%;"><div style="position:absolute;bottom:100%;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:0.6rem;color:var(--green);white-space:nowrap;padding-bottom:4px;">Ship!</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACT 3: SCALE ===== -->
+  <section class="scale-section" id="scale">
+    <div class="scale-content">
+      <div class="scale-text">
+        <h2 class="reveal">
+          <span class="highlight">5,000+ Assets</span><br>
+          Per Project
+        </h2>
+        <p class="reveal">
+          Our AI pipeline generates thousands of production-ready assets — textures, models, animations, sound effects, dialogue trees. All coherent, all consistent, all yours.
+        </p>
+        <div class="scale-stats reveal">
+          <div class="scale-stat glass">
+            <div class="value" id="stat-textures" data-target="3200">0</div>
+            <div class="label">Textures</div>
+          </div>
+          <div class="scale-stat glass">
+            <div class="value" id="stat-models" data-target="850">0</div>
+            <div class="label">3D Models</div>
+          </div>
+          <div class="scale-stat glass">
+            <div class="value" id="stat-anims" data-target="420">0</div>
+            <div class="label">Animations</div>
+          </div>
+          <div class="scale-stat glass">
+            <div class="value" id="stat-sounds" data-target="530">0</div>
+            <div class="label">Sound Effects</div>
+          </div>
+        </div>
+      </div>
+      <div class="scale-viz reveal">
+        <div class="particle-burst" id="particle-burst">
+          <div class="burst-core"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACT 4: PIPELINE ===== -->
+  <section class="pipeline-section" id="pipeline">
+    <div class="pipeline-content">
+      <div class="pipeline-header reveal">
+        <h2>The <span class="highlight">AI-Native</span> Pipeline</h2>
+        <p>Four steps from idea to deployed game. No friction. No bottlenecks.</p>
+      </div>
+      <div class="pipeline-steps" style="position:relative;">
+        <div class="pipeline-connector"></div>
+        <div class="pipeline-dot" style="animation-delay: 0s;"></div>
+        <div class="pipeline-dot" style="animation-delay: 1s;"></div>
+        <div class="pipeline-dot" style="animation-delay: 2s;"></div>
+        <div class="pipeline-dot" style="animation-delay: 3s;"></div>
+
+        <div class="pipeline-step glass reveal">
+          <span class="step-icon">⌨️</span>
+          <div class="step-number">Step 01</div>
+          <div class="step-title">PROMPT</div>
+          <p class="step-desc">Describe your game world in natural language. Characters, environments, mechanics. Just type it out.</p>
+        </div>
+        <div class="pipeline-step glass reveal">
+          <span class="step-icon">⚡</span>
+          <div class="step-number">Step 02</div>
+          <div class="step-title">GENERATE</div>
+          <p class="step-desc">Our AI engine produces thousands of coherent assets — textures, models, audio, all game-ready.</p>
+        </div>
+        <div class="pipeline-step glass reveal">
+          <span class="step-icon">🔄</span>
+          <div class="step-number">Step 03</div>
+          <div class="step-title">ITERATE</div>
+          <p class="step-desc">Tweak parameters, remix styles, fine-tune outputs. Iterate at the speed of thought.</p>
+        </div>
+        <div class="pipeline-step glass reveal">
+          <span class="step-icon">🚀</span>
+          <div class="step-number">Step 04</div>
+          <div class="step-title">DEPLOY</div>
+          <p class="step-desc">One click. Your game ships to web, mobile, desktop. Production-ready, instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ACT 5: CTA ===== -->
+  <section class="cta-section" id="cta">
+    <div class="cta-terminal glass reveal">
+      <div class="terminal-chrome">
+        <div class="chrome-dot red"></div>
+        <div class="chrome-dot yellow"></div>
+        <div class="chrome-dot green"></div>
+      </div>
+      <div class="terminal-body">
+        <div class="terminal-line"><span class="cmd">$ studio init --world fantasy-rpg</span></div>
+        <div class="terminal-line" style="color:var(--muted);">Initializing AI Native Studio pipeline...</div>
+        <div class="terminal-line"><span class="output">✓ 3,247 textures generated</span></div>
+        <div class="terminal-line"><span class="output">✓ 856 3D models generated</span></div>
+        <div class="terminal-line"><span class="output">✓ Audio engine configured</span></div>
+        <div class="terminal-line"><span class="output">✓ Deployment targets: web, iOS, Android</span></div>
+        <div class="terminal-line" style="color:var(--green);">Ready to ship. Estimated time: 48h</div>
+        <div class="terminal-line"><span style="color:var(--green);">$</span> <span id="cta-typewriter"></span><span class="cursor-blink"></span></div>
+      </div>
+    </div>
+    <h2 class="cta-title reveal">The Future<br>Is Generated</h2>
+    <p class="cta-subtitle reveal">
+      Stop waiting. Start building. The AI-native game studio is here.
+    </p>
+    <a href="#" class="cta-button reveal">Join the Waitlist</a>
+  </section>
+
+</div>
+
+<!-- Three.js Import Map -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.185.1/build/three.module.js"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+
+// ─── THREE.JS WIREFRAME GLOBE ───────────────────────
+const isMobile = window.innerWidth < 768;
+const particleCount = isMobile ? 400 : 1200;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.z = 3.5;
+
+const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true, antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+// Wireframe globe — using icosahedron geometry for geodesic look
+const geo = new THREE.IcosahedronGeometry(1.2, 4);
+const positions = geo.attributes.position.array;
+const pointsGeo = new THREE.BufferGeometry();
+pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+// Create larger points for the wireframe look
+const pointsMat = new THREE.PointsMaterial({
+  size: 0.01,
+  color: 0x6C5CE7,
+  transparent: true,
+  opacity: 0.85,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+
+const points = new THREE.Points(pointsGeo, pointsMat);
+scene.add(points);
+
+// Secondary ring of particles
+const ringGeo = new THREE.BufferGeometry();
+const ringVertices = [];
+for (let i = 0; i < particleCount; i++) {
+  const angle = (i / particleCount) * Math.PI * 2;
+  const radius = 1.5 + Math.sin(i * 0.05) * 0.3;
+  ringVertices.push(Math.cos(angle) * radius, Math.sin(i * 0.03) * 0.4, Math.sin(angle) * radius);
+}
+ringGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(ringVertices), 3));
+const ringMat = new THREE.PointsMaterial({
+  size: 0.005,
+  color: 0x00D2FF,
+  transparent: true,
+  opacity: 0.6,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const ring = new THREE.Points(ringGeo, ringMat);
+scene.add(ring);
+
+// A few glowing accent lines (wireframe arcs)
+const lineGeo = new THREE.BufferGeometry();
+const lineVerts = [];
+for (let i = 0; i < 200; i++) {
+  const t = (i / 199) * Math.PI * 2;
+  const r = 1.35;
+  lineVerts.push(Math.cos(t) * r, Math.sin(t * 3) * 0.15, Math.sin(t) * r);
+}
+lineGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(lineVerts), 3));
+const lineMat = new THREE.LineBasicMaterial({
+  color: 0x00FF88,
+  transparent: true,
+  opacity: 0.4,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const line = new THREE.Line(lineGeo, lineMat);
+scene.add(line);
+
+// Stars background
+const starsGeo = new THREE.BufferGeometry();
+const starsVerts = [];
+for (let i = 0; i < 500; i++) {
+  starsVerts.push(
+    (Math.random() - 0.5) * 8,
+    (Math.random() - 0.5) * 8,
+    (Math.random() - 0.5) * 8
+  );
+}
+starsGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(starsVerts), 3));
+const starsMat = new THREE.PointsMaterial({
+  size: 0.008,
+  color: 0xffffff,
+  transparent: true,
+  opacity: 0.3,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+});
+const stars = new THREE.Points(starsGeo, starsMat);
+scene.add(stars);
+
+// Animation
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', (e) => {
+  mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+  mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  const time = Date.now() * 0.001;
+
+  points.rotation.y += 0.0015;
+  points.rotation.x += 0.0003;
+  ring.rotation.y -= 0.0008;
+  ring.rotation.x += 0.0005;
+  line.rotation.y += 0.001;
+  line.rotation.x += 0.0003;
+  stars.rotation.y += 0.0002;
+
+  // Respond to mouse
+  points.rotation.y += mouseX * 0.0003;
+  points.rotation.x += mouseY * 0.0003;
+
+  // Pulsing opacity
+  pointsMat.opacity = 0.4 + Math.sin(time * 0.8) * 0.15;
+  ringMat.opacity = 0.3 + Math.sin(time * 0.6 + 1) * 0.1;
+
+  renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ─── CUSTOM CURSOR ─────────────────────────────────
+const cursorDot = document.getElementById('cursor-dot');
+const cursorRing = document.getElementById('cursor-ring');
+const trails = [
+  document.getElementById('cursor-trail-1'),
+  document.getElementById('cursor-trail-2'),
+  document.getElementById('cursor-trail-3')
+];
+
+let cursorX = window.innerWidth / 2;
+let cursorY = window.innerHeight / 2;
+let targetX = cursorX;
+let targetY = cursorY;
+const trailHistory = [];
+
+document.addEventListener('mousemove', (e) => {
+  targetX = e.clientX;
+  targetY = e.clientY;
+});
+
+// Hover effect with magnetic snap
+const hoverTargets = document.querySelectorAll('a, button, .glass, .cta-button');
+let magnetTarget = null;
+let magnetRect = null;
+
+hoverTargets.forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursorDot.classList.add('hover');
+    cursorRing.classList.add('hover');
+    magnetTarget = el;
+    magnetRect = el.getBoundingClientRect();
+  });
+  el.addEventListener('mouseleave', () => {
+    cursorDot.classList.remove('hover');
+    cursorRing.classList.remove('hover');
+    magnetTarget = null;
+    magnetRect = null;
+  });
+});
+
+function updateCursor() {
+  // Magnetic snap to hover target center
+  let drawX = targetX;
+  let drawY = targetY;
+
+  if (magnetTarget && magnetRect) {
+    const cx = magnetRect.left + magnetRect.width / 2;
+    const cy = magnetRect.top + magnetRect.height / 2;
+    drawX += (cx - drawX) * 0.3;
+    drawY += (cy - drawY) * 0.3;
+  }
+
+  cursorX += (drawX - cursorX) * 0.15;
+  cursorY += (drawY - cursorY) * 0.15;
+
+  cursorDot.style.transform = `translate(${targetX}px, ${targetY}px) translate(-50%, -50%)`;
+  cursorRing.style.transform = `translate(${cursorX}px, ${cursorY}px) translate(-50%, -50%)`;
+
+  trailHistory.push({ x: cursorX, y: cursorY });
+  if (trailHistory.length > 10) trailHistory.shift();
+
+  trails.forEach((trail, i) => {
+    const idx = trailHistory.length - 1 - (i + 1) * 3;
+    if (idx >= 0) {
+      trail.style.transform = `translate(${trailHistory[idx].x}px, ${trailHistory[idx].y}px) translate(-50%, -50%)`;
+      trail.style.opacity = 0.3 - i * 0.08;
+    }
+  });
+
+  requestAnimationFrame(updateCursor);
+}
+updateCursor();
+
+// Update magnet rect on scroll/resize
+window.addEventListener('scroll', () => {
+  if (magnetTarget) magnetRect = magnetTarget.getBoundingClientRect();
+}, { passive: true });
+window.addEventListener('resize', () => {
+  if (magnetTarget) magnetRect = magnetTarget.getBoundingClientRect();
+});
+
+// ─── SCROLL REVEAL ─────────────────────────────────
+const reveals = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+
+reveals.forEach(el => revealObserver.observe(el));
+
+// ─── TERMINAL TYPING (HERO) ────────────────────────
+const heroTyping = document.getElementById('hero-typing');
+const phrases = ['Generating world...', 'Loading assets...', 'Initializing engine...', 'AI NATIVE STUDIO'];
+let phraseIdx = 0;
+let charIdx = 0;
+let isDeleting = false;
+let typingSpeed = 80;
+
+function typeHero() {
+  const current = phrases[phraseIdx];
+
+  if (!isDeleting) {
+    heroTyping.textContent = current.substring(0, charIdx + 1);
+    charIdx++;
+    if (charIdx === current.length) {
+      if (phraseIdx < phrases.length - 1) {
+        isDeleting = true;
+        typingSpeed = 40;
+      }
+      return;
+    }
+  } else {
+    heroTyping.textContent = current.substring(0, charIdx - 1);
+    charIdx--;
+    if (charIdx === 0) {
+      isDeleting = false;
+      phraseIdx++;
+      if (phraseIdx >= phrases.length) phraseIdx = 0;
+      typingSpeed = 80;
+    }
+  }
+
+  setTimeout(typeHero, typingSpeed);
+}
+typeHero();
+
+// ─── CTA TYPEWRITER ────────────────────────────────
+const ctaTypewriter = document.getElementById('cta-typewriter');
+const ctaPhrase = 'the future is generated';
+let ctaCharIdx = 0;
+let ctaStarted = false;
+
+const ctaObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !ctaStarted) {
+      ctaStarted = true;
+      typeCTA();
+    }
+  });
+}, { threshold: 0.5 });
+ctaObserver.observe(document.getElementById('cta'));
+
+function typeCTA() {
+  if (ctaCharIdx < ctaPhrase.length) {
+    ctaTypewriter.textContent = ctaPhrase.substring(0, ctaCharIdx + 1);
+    ctaCharIdx++;
+    setTimeout(typeCTA, 100);
+  }
+}
+
+// ─── COUNTER ANIMATION ─────────────────────────────
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const duration = 2000;
+  const startTime = performance.now();
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    const current = Math.round(eased * target);
+    el.textContent = current.toLocaleString() + suffix;
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+const counterObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateCounter(entry.target);
+      counterObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.counter-number').forEach(el => counterObserver.observe(el));
+
+// ─── ODOMETER ANIMATION (METRIC CARDS) ─────────────
+function animateOdometer(el) {
+  const target = parseInt(el.dataset.odometer);
+  const suffix = el.dataset.suffix || '';
+  const duration = 2500;
+  const startTime = performance.now();
+
+  function update(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 4); // easeOutQuart
+    const current = Math.round(eased * target);
+    el.textContent = current.toLocaleString() + suffix;
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+
+  requestAnimationFrame(update);
+}
+
+const odometerObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateOdometer(entry.target);
+      odometerObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.6 });
+
+document.querySelectorAll('[data-odometer]').forEach(el => odometerObserver.observe(el));
+
+// ─── SCALE STATS COUNTERS ──────────────────────────
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      const duration = 2000;
+      const startTime = performance.now();
+
+      function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        el.textContent = Math.round(eased * target).toLocaleString();
+        if (progress < 1) requestAnimationFrame(update);
+      }
+
+      requestAnimationFrame(update);
+      statObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+['stat-textures', 'stat-models', 'stat-anims', 'stat-sounds'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) statObserver.observe(el);
+});
+
+// ─── TIMELINE ANIMATION ────────────────────────────
+const timelineObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const bars = entry.target.querySelectorAll('.timeline-bar');
+      bars[0].style.height = '40%';
+      bars[1].style.height = '60%';
+      bars[2].style.height = '75%';
+      bars[3].style.height = '90%';
+      bars[4].style.height = '100%';
+      timelineObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+timelineObserver.observe(document.getElementById('timeline-viz'));
+
+// ─── PARTICLE BURST ────────────────────────────────
+const burstContainer = document.getElementById('particle-burst');
+const burstObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      for (let i = 0; i < 40; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('burst-particle');
+        const angle = (i / 40) * Math.PI * 2;
+        const distance = 60 + Math.random() * 80;
+        particle.style.setProperty('--tx', `${Math.cos(angle) * distance}px`);
+        particle.style.setProperty('--ty', `${Math.sin(angle) * distance}px`);
+        particle.style.animationDelay = `${Math.random() * 2}s`;
+        particle.style.animationDuration = `${2.5 + Math.random() * 3}s`;
+        burstContainer.appendChild(particle);
+      }
+      burstObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+burstObserver.observe(burstContainer);
+
+// ─── GLITCH EFFECT ─────────────────────────────────
+const glitchEl = document.getElementById('hero-title');
+let glitchTimeout;
+
+function triggerGlitch() {
+  glitchEl.classList.add('active');
+  clearTimeout(glitchTimeout);
+  glitchTimeout = setTimeout(() => glitchEl.classList.remove('active'), 300);
+}
+
+setInterval(() => {
+  if (Math.random() < 0.15) triggerGlitch();
+}, 3000);
+
+// ─── PERFORMANCE ───────────────────────────────────
+console.log('%c AI Native Studio %c v1.0 %c Ready',
+  'color:#6C5CE7;font-size:1.2em;font-weight:bold;',
+  'color:#00D2FF;',
+  'color:#00FF88;');
+</script>
+
+</body>
+</html>
