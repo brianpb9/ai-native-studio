@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AI Native Studio — Run</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AI Native Studio</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:#0A0A0F}
@@ -17,147 +17,166 @@ const c=document.getElementById('g'),ctx=c.getContext('2d');
 let W,H;
 function rs(){W=c.width=innerWidth;H=c.height=innerHeight}rs();addEventListener('resize',rs);
 
-// Game state
-const player={x:W*.15,y:0,vy:0,w:30,h:40,onGround:true};
-let obstacles=[],particles=[],score=0,speed=5,gameOver=false,started=false;
-const GRAVITY=.8,JUMP=-13,GROUND=H*.75;
+// ═══ GAME STATE ═══
+const G=Math.min(W/800,1)*1;
+let score=0,hiScore=parseInt(localStorage.hiScore||0),speed=6,frame=0,state='title',shake=0;
+const GROUND=H*.72;
+const p={x:W*.12,y:GROUND-50,w:28*G,h:50*G,vy:0,trail:[]};
+let obstacles=[],coins=[],particles=[],stars=[];
 
-// Colors
-const COL={bg:'#0A0A0F',ground:'#1A1A2E',player:'#00D2FF',obstacle:'#6C5CE7',text:'#E8E8F0'};
+// Generate stars
+for(let i=0;i<150;i++)stars.push({x:Math.random()*W,y:Math.random()*H*.7,s:Math.random()*2+.5,b:Math.random()*.5+.5});
 
-// Jump
-function jump(){if(player.onGround){player.vy=JUMP;player.onGround=false;if(!started)started=true}}
+// ═══ INPUT ═══
+function act(){if(state==='title'){state='playing';score=0;speed=6;obstacles=[];coins=[];p.y=GROUND-p.h;p.vy=0}else if(state==='playing'){if(p.y>=GROUND-p.h){p.vy=-12*G;createTrail()}}else if(state==='over'){resetGame()}}
+addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='ArrowUp'){e.preventDefault();act()}});
+c.addEventListener('click',act);c.addEventListener('touchstart',e=>{e.preventDefault();act()});
 
-addEventListener('keydown',e=>{if(e.key===' '||e.key==='Spacebar'){e.preventDefault();gameOver?reset():jump()}});
-c.addEventListener('click',()=>gameOver?reset():jump());
-c.addEventListener('touchstart',e=>{e.preventDefault();gameOver?reset():jump()});
+function resetGame(){state='title';score=0;speed=6;obstacles=[];coins=[];p.y=GROUND-p.h;p.vy=0;p.trail=[]}
+function createTrail(){for(let i=0;i<5;i++)p.trail.push({x:p.x+p.w/2,y:p.y+p.h,life:1,vy:2+Math.random()*3})}
 
-function reset(){player.y=GROUND;player.vy=0;player.onGround=true;obstacles=[];particles=[];score=0;speed=5;gameOver=false;started=false}
-
-function spawnObstacle(){
-  const h=30+Math.random()*40;
-  obstacles.push({x:W+50,y:GROUND-h,w:25+Math.random()*20,h,passed:false});
+// ═══ SPAWN ═══
+let spawnTimer=0,coinTimer=0;
+function spawn(){
+  const types=['box','tall','double'];
+  const t=types[Math.floor(Math.random()*3)];
+  if(t==='box')obstacles.push({x:W+50,y:GROUND-35*G,w:30*G,h:35*G,type:'box'});
+  else if(t==='tall')obstacles.push({x:W+50,y:GROUND-65*G,w:22*G,h:65*G,type:'tall'});
+  else{obstacles.push({x:W+50,y:GROUND-40*G,w:28*G,h:40*G,type:'box'});obstacles.push({x:W+80,y:GROUND-55*G,w:28*G,h:55*G,type:'box'})}
 }
 
-// Spawn timer
-let spawnTimer=0;
+// ═══ PARTICLES ═══
+function burst(x,y,color,n=15){
+  for(let i=0;i<n;i++)particles.push({x,y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*8-6,life:1,decay:.02+.04*Math.random(),s:2+Math.random()*4,color});
+}
 
-function gameLoop(){
-  ctx.fillStyle=COL.bg;ctx.fillRect(0,0,W,H);
+// ═══ GAME LOOP ═══
+function loop(){
+  frame++;ctx.fillStyle='#0A0A0F';ctx.fillRect(0,0,W,H);
 
   // Stars
-  ctx.fillStyle='rgba(255,255,255,.2)';
-  for(let i=0;i<80;i++){const sx=(i*137.5+Date.now()*.01)%W,sy=(i*97.3)%H*.6;ctx.fillRect(sx,sy,1,1)}
-
-  // Ground
-  ctx.fillStyle=COL.ground;ctx.fillRect(0,GROUND+player.h,W,4);
-  // Ground line
-  ctx.strokeStyle='rgba(108,92,231,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,GROUND+player.h+2);ctx.lineTo(W,GROUND+player.h+2);ctx.stroke();
+  for(const s of stars){ctx.fillStyle=`rgba(255,255,255,${s.b})`;ctx.fillRect(s.x,s.y,s.s,s.s);s.x-=speed*.05;if(s.x<0)s.x=W}
 
   // ── UPDATE ──
-  if(started&&!gameOver){
-    // Player physics
-    player.vy+=GRAVITY;
-    player.y+=player.vy;
-    if(player.y>=GROUND){player.y=GROUND;player.vy=0;player.onGround=true}
+  if(state==='playing'){
+    speed=6+Math.floor(score/80)*.6;
+    p.vy+=.7*G;p.y+=p.vy;if(p.y>=GROUND-p.h){p.y=GROUND-p.h;p.vy=0}
+    // Trail
+    if(frame%3===0)createTrail();
+    for(let i=p.trail.length-1;i>=0;i--){p.trail[i].y+=p.trail[i].vy;p.trail[i].life-=.04;if(p.trail[i].life<=0)p.trail.splice(i,1)}
 
-    // Speed increase
-    speed=5+Math.floor(score/50)*.5;
+    spawnTimer++;coinTimer++;
+    if(spawnTimer>Math.max(22,100-speed*6)){spawnTimer=0;spawn()}
+    if(coinTimer>50+Math.random()*40){coinTimer=0;coins.push({x:W+50,y:GROUND-80*G-Math.random()*60*G,w:16*G,h:16*G,rot:0})}
 
-    // Spawn obstacles
-    spawnTimer++;
-    if(spawnTimer>Math.max(30,120-speed*5)){spawnTimer=0;spawnObstacle()}
-
-    // Move obstacles
+    // Move + collide
     for(let i=obstacles.length-1;i>=0;i--){
-      const o=obstacles[i];
-      o.x-=speed;
-      // Score
-      if(!o.passed&&o.x+o.w<player.x){o.passed=true;score+=10}
-      // Remove off screen
+      const o=obstacles[i];o.x-=speed;
+      if(p.x<o.x+o.w&&p.x+p.w>o.x&&p.y<o.y+o.h&&p.y+p.h>o.y){state='over';shake=15;burst(p.x+p.w/2,p.y+p.h/2,'#6C5CE7',25);if(score>hiScore){hiScore=score;localStorage.hiScore=hiScore}}
       if(o.x<-100)obstacles.splice(i,1);
     }
-
-    // Collision
-    for(const o of obstacles){
-      if(
-        player.x<o.x+o.w&&player.x+player.w>o.x&&
-        player.y<o.y+o.h&&player.y+player.h>o.y
-      ){
-        gameOver=true;
-        // Particles
-        for(let i=0;i<20;i++)particles.push({x:player.x+player.w/2,y:player.y+player.h/2,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8-4,life:1,color:Math.random()<.5?'#00D2FF':'#6C5CE7',size:3+Math.random()*5});
-      }
+    for(let i=coins.length-1;i>=0;i--){
+      const o=coins[i];o.x-=speed;o.rot+=.08;
+      if(p.x<o.x+o.w&&p.x+p.w>o.x&&p.y<o.y+o.h&&p.y+p.h>o.y){score+=5;burst(o.x+o.w/2,o.y+o.h/2,'#FFD700',8);coins.splice(i,1)}
+      if(o.x<-50)coins.splice(i,1);
     }
+    score++;
   }
 
   // Particles
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.2;p.life-=.03;
-    if(p.life<=0)particles.splice(i,1);
-    else{ctx.fillStyle=p.color.replace(')',`,${p.life})`);ctx.fillRect(p.x,p.y,p.size,p.size)}
-  }
+  for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.3;p.life-=p.decay;if(p.life<=0)particles.splice(i,1)}
+
+  // Shake decay
+  if(shake>0)shake*=.85;
 
   // ── DRAW ──
+  const sx=shake?(Math.random()-.5)*shake:0,sy=shake?(Math.random()-.5)*shake:0;
+  ctx.save();ctx.translate(sx,sy);
+
+  // Ground
+  const gh=GROUND;
+  ctx.fillStyle='#141428';ctx.fillRect(0,gh,W,H-gh);
+  ctx.fillStyle='rgba(108,92,231,.15)';ctx.fillRect(0,gh,W,2);
+  // Ground dots
+  let dotOffset=(-frame*speed*.5)%40;
+  ctx.fillStyle='rgba(108,92,231,.08)';
+  for(let x=dotOffset;x<W+40;x+=40)ctx.fillRect(x,gh+10,2,2);
+
   // Obstacles
   for(const o of obstacles){
     ctx.fillStyle='#6C5CE7';ctx.fillRect(o.x,o.y,o.w,o.h);
-    // Highlight
-    ctx.fillStyle='rgba(255,255,255,.1)';ctx.fillRect(o.x,o.y,o.w,3);
-    // Glow
-    ctx.fillStyle='rgba(108,92,231,.15)';ctx.fillRect(o.x-2,o.y-2,o.w+4,o.h+4);
+    ctx.fillStyle='#7B6CF6';ctx.fillRect(o.x,o.y,o.w,4);
+    ctx.fillStyle='rgba(108,92,231,.1)';ctx.fillRect(o.x-2,o.y-2,o.w+4,o.h+4);
   }
 
+  // Coins
+  for(const o of coins){
+    ctx.save();ctx.translate(o.x+o.w/2,o.y+o.h/2);ctx.rotate(o.rot);
+    ctx.fillStyle='#FFD700';ctx.fillRect(-o.w/2,-o.h/2,o.w,o.h);
+    ctx.fillStyle='#FFC107';ctx.fillRect(-o.w/2+3,-o.h/2,4,o.h);
+    ctx.restore();
+    ctx.fillStyle='rgba(255,215,0,.2)';ctx.fillRect(o.x-2,o.y-2,o.w+4,o.h+4);
+  }
+
+  // Player trail
+  for(const t of p.trail){ctx.fillStyle=`rgba(0,210,255,${t.life*.3})`;ctx.fillRect(t.x-2,t.y,4,4)}
+
   // Player
-  const px=player.x,py=player.y;
+  const bob=state==='playing'?Math.sin(frame*.08)*3:0;
   // Glow
-  ctx.fillStyle='rgba(0,210,255,.2)';ctx.fillRect(px-4,py-4,player.w+8,player.h+8);
+  ctx.fillStyle='rgba(0,210,255,.15)';ctx.fillRect(p.x-4,p.y+bob-4,p.w+8,p.h+8);
   // Body
-  const bob=player.onGround?Math.abs(Math.sin(Date.now()*.01))*3:0;
-  ctx.fillStyle='#00D2FF';ctx.fillRect(px,py+bob,player.w,player.h);
-  // Highlight
-  ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(px,py+bob,player.w,4);
+  ctx.fillStyle='#00D2FF';ctx.fillRect(p.x,p.y+bob,p.w,p.h);
+  ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(p.x,p.y+bob,p.w,5);
   // Eyes
-  ctx.fillStyle='#0A0A0F';ctx.fillRect(px+player.w-12,py+8+bob,6,6);
+  const ex=p.x+p.w-10,ey=p.y+bob+10;
+  ctx.fillStyle='#0A0A0F';ctx.fillRect(ex,ey,5,6);ctx.fillRect(ex-8,ey,5,6);
+  // Mouth
+  ctx.fillStyle='#0A0A0F';ctx.fillRect(p.x+4,p.y+bob+24,12,3);
 
-  // Score
-  ctx.fillStyle='rgba(255,255,255,.8)';
-  ctx.font='bold 20px Inter,system-ui,sans-serif';
-  ctx.textAlign='right';
-  ctx.fillText(`${score}`,W-30,50);
+  // Particles
+  for(const p of particles){
+    ctx.fillStyle=p.color.replace(')',`,${p.life})`);
+    ctx.fillRect(p.x,p.y,p.s,p.s);
+  }
 
-  // Speed indicator
-  ctx.fillStyle='rgba(255,255,255,.3)';
-  ctx.font='11px DM Mono,monospace';
-  ctx.fillText(`${Math.floor(speed*10)/10}x`,W-30,75);
+  ctx.restore();
 
-  // Start hint
-  if(!started&&!gameOver){
-    ctx.fillStyle='rgba(255,255,255,.6)';
-    ctx.font='bold clamp(1.5rem,4vw,2.5rem) Cabinet Grotesk,system-ui,sans-serif';
-    ctx.textAlign='center';
-    ctx.fillText('AI NATIVE STUDIO',W/2,H*.35);
-    ctx.fillStyle='rgba(0,210,255,.6)';
-    ctx.font='clamp(.7rem,1.5vw,.9rem) DM Mono,monospace';
-    ctx.fillText('Press SPACE or TAP to start',W/2,H*.35+40);
+  // ── HUD ──
+  if(state!=='over'){
+    ctx.fillStyle='rgba(255,255,255,.8)';ctx.font=`bold ${20*G}px system-ui,sans-serif`;ctx.textAlign='right';
+    ctx.fillText(`${score}`,W-25,35);
+    ctx.fillStyle='rgba(255,255,255,.25)';ctx.font=`${10*G}px monospace`;ctx.fillText(`best ${hiScore}`,W-25,55);
+  }
+
+  // Title screen
+  if(state==='title'){
+    ctx.fillStyle='rgba(10,10,15,.5)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font=`bold ${clamp(28,6,60)}px system-ui,sans-serif`;ctx.textAlign='center';
+    ctx.fillText('AI NATIVE STUDIO',W/2,H*.32);
+    ctx.fillStyle='rgba(0,210,255,.7)';ctx.font=`${clamp(12,2.2,20)}px monospace`;
+    ctx.fillText('✦ Press SPACE or TAP to play ✦',W/2,H*.32+clamp(28,6,60)*.6);
+    if(hiScore>0){ctx.fillStyle='rgba(255,215,0,.5)';ctx.fillText(`Best: ${hiScore}`,W/2,H*.32+clamp(28,6,60)*1.2)}
+    // Animated player
+    const bp=Math.sin(frame*.06)*4;
+    ctx.fillStyle='#00D2FF';ctx.fillRect(W/2-15*G,GROUND-p.h+bp,p.w,p.h);
+    ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(W/2-15*G,GROUND-p.h+bp,p.w,5);
   }
 
   // Game over
-  if(gameOver){
-    ctx.fillStyle='rgba(10,10,15,.7)';ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#fff';
-    ctx.font='bold clamp(2rem,5vw,3rem) Cabinet Grotesk,system-ui,sans-serif';
-    ctx.textAlign='center';
+  if(state==='over'){
+    ctx.fillStyle='rgba(10,10,15,.75)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';ctx.font=`bold ${clamp(24,5,48)}px system-ui,sans-serif`;ctx.textAlign='center';
     ctx.fillText('Game Over',W/2,H*.4);
-    ctx.fillStyle='rgba(0,210,255,.8)';
-    ctx.font='clamp(.8rem,2vw,1rem) DM Mono,monospace';
-    ctx.fillText(`Score: ${score}  |  Click to retry`,W/2,H*.4+40);
+    ctx.fillStyle='rgba(0,210,255,.8)';ctx.font=`${clamp(12,2.2,20)}px monospace`;
+    ctx.fillText(`Score: ${score}  ·  Best: ${hiScore}`,W/2,H*.4+clamp(24,5,48)*.7);
+    ctx.fillStyle='rgba(255,255,255,.4)';ctx.fillText('Click to retry',W/2,H*.4+clamp(24,5,48)*1.2);
   }
 
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(loop);
 }
-player.y=GROUND;
-requestAnimationFrame(gameLoop);
+function clamp(min,vw,max){return Math.min(max,Math.max(min,W*vw/100))}
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
