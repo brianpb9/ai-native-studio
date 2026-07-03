@@ -923,18 +923,10 @@
 
 </div>
 
-<!-- Three.js Import Map -->
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.170.0/build/three.module.js"
-  }
-}
-</script>
+<!-- Three.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.min.js"></script>
 
-<script type="module">
-import * as THREE from 'three';
-
+<script>
 // ─── THREE.JS WIREFRAME GLOBE ───────────────────────
 const isMobile = window.innerWidth < 768;
 const particleCount = isMobile ? 400 : 1200;
