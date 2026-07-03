@@ -3,409 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>AI Native Studio — Play</title>
-<meta name="description" content="The first AI-native game studio. Build worlds. Break rules.">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@600;800&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700;800;900&display=swap" rel="stylesheet">
+<title>AI Native Studio — Run</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
-  html,body{width:100%;height:100%;overflow:hidden;background:#0A0A0F;font-family:'Inter',sans-serif;color:#E8E8F0;user-select:none;-webkit-user-select:none}
-
-  #game{position:fixed;inset:0;z-index:1;cursor:crosshair}
-
-  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:1.5rem}
-  #hud>*{pointer-events:auto}
-
-  .hud-top{display:flex;justify-content:space-between;align-items:flex-start}
-  .hud-brand{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:1.3rem;background:linear-gradient(135deg,#00D2FF,#6C5CE7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .hud-nav{display:flex;gap:1.5rem;list-style:none}
-  .hud-nav button{background:none;border:none;color:rgba(255,255,255,.45);font-size:.75rem;cursor:pointer;font-family:'Inter',sans-serif;transition:color .2s}
-  .hud-nav button:hover{color:#fff}
-
-  .hud-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap}
-  
-  /* Hotbar */
-  .hotbar{display:flex;gap:4px;background:rgba(10,10,15,.7);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:6px;backdrop-filter:blur(12px)}
-  .hotbar-slot{width:40px;height:40px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .15s;position:relative}
-  .hotbar-slot:hover{border-color:rgba(255,255,255,.3)}
-  .hotbar-slot.active{border-color:#00D2FF;box-shadow:0 0 12px rgba(0,210,255,.3)}
-  .hotbar-slot span{position:absolute;bottom:-2px;right:-2px;font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,.5);background:#0A0A0F;padding:1px 4px;border-radius:4px}
-
-  .hud-info{font-family:'DM Mono',monospace;font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.6;text-align:right}
-  .hud-info kbd{color:rgba(108,92,231,.7);background:rgba(108,92,231,.1);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace}
-
-  /* Title overlay */
-  #title-overlay{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:15;text-align:center;pointer-events:none;transition:opacity .5s}
-  #title-overlay h1{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:clamp(2rem,5vw,4rem);line-height:1;letter-spacing:-.03em}
-  #title-overlay h1 .c{color:#00D2FF}#title-overlay h1 .w{color:#fff}#title-overlay h1 .p{color:#6C5CE7}
-  #title-overlay .sub{font-family:'DM Mono',monospace;color:rgba(0,210,255,.5);font-size:.7rem;letter-spacing:.2em;margin-top:.75rem}
-
-  /* Section popup */
-  #popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:20;pointer-events:none;opacity:0;transition:opacity .3s}
-  #popup.show{opacity:1;pointer-events:auto}
-  .popup-card{background:rgba(10,10,15,.9);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:2.5rem;max-width:450px;text-align:center;backdrop-filter:blur(20px)}
-  .popup-card h2{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:2rem;margin-bottom:.3rem}
-  .popup-card h3{color:rgba(255,255,255,.4);font-weight:400;font-size:.9rem;margin-bottom:1rem}
-  .popup-card p{color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:1.5rem;font-size:.9rem}
-  .popup-card .btn{display:inline-block;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;padding:.6rem 2rem;border-radius:50px;background:linear-gradient(135deg,#6C5CE7,#00D2FF);color:#fff;text-decoration:none;font-size:.85rem;border:none;cursor:pointer}
-
-  @media(max-width:768px){
-    #hud{padding:.75rem}
-    .hud-nav{gap:.75rem}.hud-nav button{font-size:.65rem}
-    .hud-info{display:none}
-    .hotbar-slot{width:32px;height:32px}
-  }
+  html,body{width:100%;height:100%;overflow:hidden;background:#0A0A0F}
+  canvas{display:block}
 </style>
 </head>
 <body>
-
-<canvas id="game"></canvas>
-
-<div id="hud">
-  <div class="hud-top">
-    <div class="hud-brand">AI NATIVE</div>
-    <div class="hud-nav">
-      <button onclick="showPopup('velocity')">Velocity</button>
-      <button onclick="showPopup('scale')">Scale</button>
-      <button onclick="showPopup('pipeline')">Pipeline</button>
-      <button onclick="showPopup('cta')">Contact</button>
-    </div>
-  </div>
-  <div class="hud-bottom">
-    <div class="hotbar" id="hotbar"></div>
-    <div class="hud-info"><kbd>1-5</kbd> switch block &nbsp; <kbd>WASD</kbd> move &nbsp; <kbd>CLICK</kbd> place &nbsp; <kbd>R CLICK</kbd> break &nbsp; <kbd>SPACE</kbd> jump</div>
-  </div>
-</div>
-
-<div id="title-overlay"><h1><span class="c">AI</span> <span class="w">NATIVE</span> <span class="p">STUDIO</span></h1><div class="sub">✦ Build worlds. Break rules. ✦</div></div>
-
-<div id="popup"></div>
-
+<canvas id="g"></canvas>
 <script>
-// ══════════════════════════════════════════
-// WORLD BUILDER — Minecraft-style
-// ══════════════════════════════════════════
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+const c=document.getElementById('g'),ctx=c.getContext('2d');
 let W,H;
+function rs(){W=c.width=innerWidth;H=c.height=innerHeight}rs();addEventListener('resize',rs);
 
-function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
-resize();window.addEventListener('resize',resize);
+// Game state
+const player={x:W*.15,y:0,vy:0,w:30,h:40,onGround:true};
+let obstacles=[],particles=[],score=0,speed=5,gameOver=false,started=false;
+const GRAVITY=.8,JUMP=-13,GROUND=H*.75;
 
-// ── BLOCK TYPES ──
-const BLOCKS=[
-  {name:'Dirt',color:'#8B6914',dark:'#6B4F10'},
-  {name:'Grass',color:'#4CAF50',dark:'#388E3C'},
-  {name:'Stone',color:'#7A7A8C',dark:'#5A5A6C'},
-  {name:'Wood',color:'#C4956A',dark:'#A07550'},
-  {name:'Glass',color:'rgba(0,210,255,.35)',dark:'rgba(0,150,200,.25)'},
-  {name:'Lava',color:'#FF6B35',dark:'#CC4422',glow:true},
-  {name:'Crystal',color:'#B44CFF',dark:'#8833CC',glow:true},
-  {name:'Gold',color:'#FFD700',dark:'#CCA800'},
-];
-let selectedBlock=1;
+// Colors
+const COL={bg:'#0A0A0F',ground:'#1A1A2E',player:'#00D2FF',obstacle:'#6C5CE7',text:'#E8E8F0'};
 
-// Build hotbar
-const hotbar=document.getElementById('hotbar');
-BLOCKS.forEach((b,i)=>{
-  const slot=document.createElement('div');
-  slot.className='hotbar-slot'+(i===selectedBlock?' active':'');
-  slot.style.background=b.color;
-  slot.innerHTML=`<span>${i+1}</span>`;
-  slot.title=b.name;
-  slot.onclick=()=>selectBlock(i);
-  hotbar.appendChild(slot);
-});
-function selectBlock(i){
-  selectedBlock=i;
-  document.querySelectorAll('.hotbar-slot').forEach((s,j)=>s.classList.toggle('active',j===i));
+// Jump
+function jump(){if(player.onGround){player.vy=JUMP;player.onGround=false;if(!started)started=true}}
+
+addEventListener('keydown',e=>{if(e.key===' '||e.key==='Spacebar'){e.preventDefault();gameOver?reset():jump()}});
+c.addEventListener('click',()=>gameOver?reset():jump());
+c.addEventListener('touchstart',e=>{e.preventDefault();gameOver?reset():jump()});
+
+function reset(){player.y=GROUND;player.vy=0;player.onGround=true;obstacles=[];particles=[];score=0;speed=5;gameOver=false;started=false}
+
+function spawnObstacle(){
+  const h=30+Math.random()*40;
+  obstacles.push({x:W+50,y:GROUND-h,w:25+Math.random()*20,h,passed:false});
 }
 
-// Key to select block
-window.addEventListener('keydown',e=>{
-  const n=parseInt(e.key);
-  if(n>=1&&n<=BLOCKS.length)selectBlock(n-1);
-});
+// Spawn timer
+let spawnTimer=0;
 
-// ── WORLD ──
-const GS=32; // Grid size in pixels
-const world={}; // "col,row" → blockIndex (0-7) or null=air
-
-// Ground level
-const GROUND_Y=20; // grid row for ground
-
-function getBlock(col,row){
-  const key=`${col},${row}`;
-  if(row>GROUND_Y)return 2; // stone below ground
-  if(row===GROUND_Y){
-    // Generate terrain height
-    const h=Math.sin(col*.15)*3+Math.sin(col*.3)*2+Math.sin(col*.07)*5;
-    if(row<=GROUND_Y-Math.abs(h))return null; // air above terrain
-    return h>0?1:0; // grass or dirt
-  }
-  if(row===GROUND_Y-1&&Math.random()<.02)return 6; // rare crystal
-  return world[key]!==undefined?world[key]:null;
-}
-
-function placeBlock(col,row,type){
-  const key=`${col},${row}`;
-  if(getBlock(col,row)!==null)return false; // already occupied
-  world[key]=type;
-  return true;
-}
-
-function breakBlock(col,row){
-  const key=`${col},${row}`;
-  if(row>=GROUND_Y+1)return false; // can't break above sky
-  if(getBlock(col,row)===null)return false;
-  delete world[key];
-  return true;
-}
-
-// ── PLAYER ──
-const player={
-  x:0,y:GROUND_Y-3, // grid coords
-  vx:0,vy:0,
-  speed:8,
-  jumpForce:-14,
-  onGround:false,
-  width:.6, // fraction of grid
-  height:1.8,
-};
-const keys={};
-
-window.addEventListener('keydown',e=>{
-  keys[e.key.toLowerCase()]=true;
-  if(e.key===' '||e.key==='Spacebar'){e.preventDefault();if(player.onGround)player.vy=player.jumpForce}
-});
-window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
-
-// Mouse for building
-let mouseGridX=0,mouseGridY=0;
-canvas.addEventListener('mousemove',e=>{
-  const wx=(e.clientX-W/2)/GS+player.x;
-  const wy=(e.clientY-H/2)/GS+player.y;
-  mouseGridX=Math.floor(wx+.5);
-  mouseGridY=Math.floor(wy+.5);
-});
-canvas.addEventListener('click',e=>{
-  if(e.button===0)placeBlock(mouseGridX,mouseGridY,selectedBlock);
-});
-canvas.addEventListener('contextmenu',e=>{e.preventDefault();breakBlock(mouseGridX,mouseGridY)});
-
-// Touch
-canvas.addEventListener('touchstart',e=>{
-  e.preventDefault();
-  const t=e.touches[0];
-  const wx=(t.clientX-W/2)/GS+player.x,wy=(t.clientY-H/2)/GS+player.y;
-  const gx=Math.floor(wx+.5),gy=Math.floor(wy+.5);
-  if(e.touches.length===1)placeBlock(gx,gy,selectedBlock);
-},{passive:false});
-
-// ── PARTICLES ──
-const particles=[];
-function spawnParticles(x,y,color,count=6){
-  for(let i=0;i<count;i++)particles.push({x,y,vx:(Math.random()-.5)*4,vy:(Math.random()-.5)*4-2,life:1,decay:.03+.06*Math.random(),size:2+Math.random()*3,color});
-}
-
-// ── CAMERA ──
-const camera={x:0,y:0,tx:0,ty:0};
-
-// ── POPUP ──
-const popups={
-  velocity:{title:'48 Hours',sub:'Concept to Prototype',desc:'Traditional studios take months. We ship game-ready prototypes in two days. AI handles everything except creative direction.',btn:'Learn More'},
-  scale:{title:'5,000+ Assets',sub:'Per Project',desc:'Textures, 3D models, animations, sound effects — all generated, all game-ready, all consistent.',btn:'See Stats'},
-  pipeline:{title:'How It Works',sub:'Prompt → Generate → Iterate → Deploy',desc:'Four steps. Zero friction. From blank canvas to deployed game. No waiting on artists.',btn:'Start Building'},
-  cta:{title:'Join Us',sub:'The future is generated',desc:'Stop wrestling with engines. Build the game you\'ve been dreaming about.',btn:'<a href="mailto:hello@hdrv.studio" class="btn">Contact</a>'},
-};
-let popupTimeout;
-function showPopup(id){
-  const p=popups[id];
-  document.getElementById('popup').innerHTML=`<div class="popup-card"><h2>${p.title}</h2><h3>${p.sub}</h3><p>${p.desc}</p>${p.btn}</div>`;
-  document.getElementById('popup').classList.add('show');
-  clearTimeout(popupTimeout);
-  popupTimeout=setTimeout(()=>document.getElementById('popup').classList.remove('show'),4000);
-}
-window.showPopup=showPopup;
-
-// ── GAME LOOP ──
-let lastTime=0,titleOpacity=1;
-
-function gameLoop(time){
-  const dt=Math.min((time-lastTime)/16.67,3);lastTime=time;
-  const gdt=dt*.06; // game tick
-
-  // ── PLAYER PHYSICS ──
-  // Horizontal
-  let mx=0;
-  if(keys['a']||keys['arrowleft'])mx=-1;
-  if(keys['d']||keys['arrowright'])mx=1;
-
-  player.x+=mx*player.speed*gdt;
-
-  // Collision X
-  const px=player.x,py=player.y;
-  const left=px-player.width/2,right=px+player.width/2;
-  const top=py-player.height, bottom=py;
-  const cl=Math.floor(left),cr=Math.floor(right);
-  const ct=Math.floor(top),cb=Math.floor(bottom);
-
-  // Check horizontal collisions
-  for(let r=ct;r<=cb;r++){
-    if(mx>0&&getBlock(cr,r)!==null){player.x=cr-player.width/2;mx=0;break}
-    if(mx<0&&getBlock(cl,r)!==null){player.x=cl+1+player.width/2;mx=0;break}
-  }
-
-  // Gravity + vertical
-  player.vy+=.6*gdt*16;
-  player.y+=player.vy*gdt;
-
-  // Collision Y
-  const bt=Math.floor(player.y-player.height),bb=Math.floor(player.y);
-  player.onGround=false;
-  for(let c=Math.floor(player.x-player.width/2);c<=Math.floor(player.x+player.width/2);c++){
-    if(player.vy>0&&getBlock(c,bb)!==null){
-      player.y=bb;
-      player.vy=0;
-      player.onGround=true;
-      break;
-    }
-    if(player.vy<0&&getBlock(c,bt)!==null){
-      player.y=bt+player.height;
-      player.vy=0;
-      break;
-    }
-  }
-
-  // Fall death / loop
-  if(player.y>GROUND_Y+30){player.x=0;player.y=GROUND_Y-5;player.vy=0}
-
-  // ── CAMERA ──
-  camera.tx=player.x*GS;
-  camera.ty=player.y*GS-H*.4;
-  camera.x+=(camera.tx-camera.x)*.08;
-  camera.y+=(camera.ty-camera.y)*.08;
-
-  // ── TITLE FADE ──
-  if(mx!==0||!player.onGround){titleOpacity=Math.max(0,titleOpacity-.02)}
-  else{titleOpacity=Math.min(1,titleOpacity+.01)}
-  document.getElementById('title-overlay').style.opacity=titleOpacity;
-
-  // ── PARTICLES ──
-  for(let i=particles.length-1;i>=0;i--){
-    const p=particles[i];p.x+=p.vx*gdt;p.y+=p.vy*gdt;p.life-=p.decay*gdt;
-    if(p.life<=0)particles.splice(i,1);
-  }
-
-  // ── RENDER ──
-  ctx.fillStyle='#0A0A0F';ctx.fillRect(0,0,W,H);
-
-  // Sky gradient
-  const sky=ctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#0A0A2E');sky.addColorStop(.4,'#1A1A3E');sky.addColorStop(1,'#0A0A0F');
-  ctx.fillStyle=sky;ctx.fillRect(0,0,W,H);
+function gameLoop(){
+  ctx.fillStyle=COL.bg;ctx.fillRect(0,0,W,H);
 
   // Stars
-  ctx.fillStyle='rgba(255,255,255,.3)';
-  for(let i=0;i<100;i++){
-    const sx=(i*137.5)%W, sy=(i*97.3)%(H*.5);
-    ctx.fillRect(sx,sy,1,1);
-  }
+  ctx.fillStyle='rgba(255,255,255,.2)';
+  for(let i=0;i<80;i++){const sx=(i*137.5+Date.now()*.01)%W,sy=(i*97.3)%H*.6;ctx.fillRect(sx,sy,1,1)}
 
-  ctx.save();
-  ctx.translate(W/2,H/2);
-  ctx.translate(-camera.x,-camera.y);
+  // Ground
+  ctx.fillStyle=COL.ground;ctx.fillRect(0,GROUND+player.h,W,4);
+  // Ground line
+  ctx.strokeStyle='rgba(108,92,231,.3)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(0,GROUND+player.h+2);ctx.lineTo(W,GROUND+player.h+2);ctx.stroke();
 
-  // Visible grid range
-  const vsx=Math.floor((camera.x-W/2)/GS)-2;
-  const vsy=Math.floor((camera.y-H/2)/GS)-2;
-  const vex=Math.floor((camera.x+W/2)/GS)+2;
-  const vey=Math.floor((camera.y+H/2)/GS)+2;
+  // ── UPDATE ──
+  if(started&&!gameOver){
+    // Player physics
+    player.vy+=GRAVITY;
+    player.y+=player.vy;
+    if(player.y>=GROUND){player.y=GROUND;player.vy=0;player.onGround=true}
 
-  // Draw blocks
-  for(let col=vsx;col<=vex;col++){
-    for(let row=vsy;row<=vey;row++){
-      const block=getBlock(col,row);
-      if(block===null)continue;
-      const b=BLOCKS[block];
-      const x=col*GS,y=row*GS;
+    // Speed increase
+    speed=5+Math.floor(score/50)*.5;
 
-      // Block body
-      ctx.fillStyle=b.color;
-      ctx.fillRect(x,y,GS,GS);
+    // Spawn obstacles
+    spawnTimer++;
+    if(spawnTimer>Math.max(30,120-speed*5)){spawnTimer=0;spawnObstacle()}
 
-      // Block highlight (top/left edges)
-      ctx.fillStyle='rgba(255,255,255,.08)';
-      ctx.fillRect(x,y,GS,2);
-      ctx.fillRect(x,y,2,GS);
+    // Move obstacles
+    for(let i=obstacles.length-1;i>=0;i--){
+      const o=obstacles[i];
+      o.x-=speed;
+      // Score
+      if(!o.passed&&o.x+o.w<player.x){o.passed=true;score+=10}
+      // Remove off screen
+      if(o.x<-100)obstacles.splice(i,1);
+    }
 
-      // Block shadow (bottom/right)
-      ctx.fillStyle=b.dark;
-      ctx.fillRect(x,y+GS-2,GS,2);
-      ctx.fillRect(x+GS-2,y,2,GS);
-
-      // Glow effect for special blocks
-      if(b.glow){
-        ctx.fillStyle=b.color.replace(')','.08)');
-        ctx.fillRect(x-2,y-2,GS+4,GS+4);
+    // Collision
+    for(const o of obstacles){
+      if(
+        player.x<o.x+o.w&&player.x+player.w>o.x&&
+        player.y<o.y+o.h&&player.y+player.h>o.y
+      ){
+        gameOver=true;
+        // Particles
+        for(let i=0;i<20;i++)particles.push({x:player.x+player.w/2,y:player.y+player.h/2,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8-4,life:1,color:Math.random()<.5?'#00D2FF':'#6C5CE7',size:3+Math.random()*5});
       }
     }
   }
 
-  // Mouse preview block
-  if(mouseGridX>=vsx&&mouseGridX<=vex&&mouseGridY>=vsy&&mouseGridY<=vey){
-    const b=BLOCKS[selectedBlock];
-    ctx.fillStyle=b.color.replace(')','.5)');
-    ctx.fillRect(mouseGridX*GS,mouseGridY*GS,GS,GS);
-    ctx.strokeStyle='#fff';
-    ctx.lineWidth=1;
-    ctx.strokeRect(mouseGridX*GS,mouseGridY*GS,GS,GS);
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vy+=.2;p.life-=.03;
+    if(p.life<=0)particles.splice(i,1);
+    else{ctx.fillStyle=p.color.replace(')',`,${p.life})`);ctx.fillRect(p.x,p.y,p.size,p.size)}
+  }
+
+  // ── DRAW ──
+  // Obstacles
+  for(const o of obstacles){
+    ctx.fillStyle='#6C5CE7';ctx.fillRect(o.x,o.y,o.w,o.h);
+    // Highlight
+    ctx.fillStyle='rgba(255,255,255,.1)';ctx.fillRect(o.x,o.y,o.w,3);
+    // Glow
+    ctx.fillStyle='rgba(108,92,231,.15)';ctx.fillRect(o.x-2,o.y-2,o.w+4,o.h+4);
   }
 
   // Player
-  const ppx=player.x*GS,ppy=player.y*GS;
-  // Shadow
-  ctx.fillStyle='rgba(0,0,0,.3)';ctx.fillRect(ppx-GS*.3,ppy-2,GS*.6,4);
-  // Body
-  const bodyH=GS*player.height*.8;
-  ctx.fillStyle='#fff';
-  ctx.fillRect(ppx-GS*.2,ppy-bodyH,GS*.4,bodyH);
-  // Head
-  ctx.fillStyle='#fff';
-  ctx.fillRect(ppx-GS*.25,ppy-bodyH-GS*.6,GS*.5,GS*.6);
-  // Eyes
-  const eyeDir=mx||1;
-  ctx.fillStyle='#0A0A0F';
-  ctx.fillRect(ppx+GS*.08*eyeDir,ppy-bodyH-GS*.4,GS*.1,GS*.1);
+  const px=player.x,py=player.y;
   // Glow
-  ctx.fillStyle='rgba(0,210,255,.15)';
-  ctx.fillRect(ppx-GS*.35,ppy-bodyH-GS*.7,GS*.7,bodyH+GS*.7);
+  ctx.fillStyle='rgba(0,210,255,.2)';ctx.fillRect(px-4,py-4,player.w+8,player.h+8);
+  // Body
+  const bob=player.onGround?Math.abs(Math.sin(Date.now()*.01))*3:0;
+  ctx.fillStyle='#00D2FF';ctx.fillRect(px,py+bob,player.w,player.h);
+  // Highlight
+  ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(px,py+bob,player.w,4);
+  // Eyes
+  ctx.fillStyle='#0A0A0F';ctx.fillRect(px+player.w-12,py+8+bob,6,6);
 
-  // Particles
-  for(const p of particles){
-    ctx.fillStyle=p.color.replace(')',`,${p.life})`);
-    ctx.fillRect(p.x*GS,p.y*GS,p.size,p.size);
+  // Score
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  ctx.font='bold 20px Inter,system-ui,sans-serif';
+  ctx.textAlign='right';
+  ctx.fillText(`${score}`,W-30,50);
+
+  // Speed indicator
+  ctx.fillStyle='rgba(255,255,255,.3)';
+  ctx.font='11px DM Mono,monospace';
+  ctx.fillText(`${Math.floor(speed*10)/10}x`,W-30,75);
+
+  // Start hint
+  if(!started&&!gameOver){
+    ctx.fillStyle='rgba(255,255,255,.6)';
+    ctx.font='bold clamp(1.5rem,4vw,2.5rem) Cabinet Grotesk,system-ui,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('AI NATIVE STUDIO',W/2,H*.35);
+    ctx.fillStyle='rgba(0,210,255,.6)';
+    ctx.font='clamp(.7rem,1.5vw,.9rem) DM Mono,monospace';
+    ctx.fillText('Press SPACE or TAP to start',W/2,H*.35+40);
   }
 
-  // Grid lines (subtle)
-  ctx.strokeStyle='rgba(255,255,255,.02)';
-  ctx.lineWidth=.5;
-  for(let col=vsx;col<=vex;col++){ctx.beginPath();ctx.moveTo(col*GS,vsy*GS);ctx.lineTo(col*GS,vey*GS);ctx.stroke()}
-  for(let row=vsy;row<=vey;row++){ctx.beginPath();ctx.moveTo(vsx*GS,row*GS);ctx.lineTo(vex*GS,row*GS);ctx.stroke()}
-
-  ctx.restore();
-
-  // Vignette
-  const vg=ctx.createRadialGradient(W/2,H/2,W*.3,W/2,H/2,Math.max(W,H)*.7);
-  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(10,10,15,.5)');
-  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+  // Game over
+  if(gameOver){
+    ctx.fillStyle='rgba(10,10,15,.7)';ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff';
+    ctx.font='bold clamp(2rem,5vw,3rem) Cabinet Grotesk,system-ui,sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText('Game Over',W/2,H*.4);
+    ctx.fillStyle='rgba(0,210,255,.8)';
+    ctx.font='clamp(.8rem,2vw,1rem) DM Mono,monospace';
+    ctx.fillText(`Score: ${score}  |  Click to retry`,W/2,H*.4+40);
+  }
 
   requestAnimationFrame(gameLoop);
 }
-
+player.y=GROUND;
 requestAnimationFrame(gameLoop);
-
-console.log('%c🎮 AI Native Studio %c v10 %c — Minecraft-style World Builder',
-  'color:#6C5CE7;font-size:1.2em','color:#00D2FF','color:#00FF88;');
 </script>
 </body>
 </html>
