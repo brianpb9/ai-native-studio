@@ -3,426 +3,353 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Native Studio — Generate Worlds</title>
-<meta name="description" content="The first AI-native game studio. Drag to generate. Scroll to explore.">
-<meta property="og:title" content="AI Native Studio">
-<meta property="og:description" content="Build worlds. Break rules. Ship fast.">
-<meta property="og:type" content="website">
+<title>AI Native Studio — Play to Explore</title>
+<meta name="description" content="The first AI-native game studio. Explore a world generated in real-time.">
+<meta property="og:title" content="AI Native Studio — Play">
+<meta property="og:description" content="Move. Build. Explore. This website is a game.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:#0A0A0F;--card:rgba(255,255,255,.025);--purple:#6C5CE7;--cyan:#00D2FF;--green:#00FF88;--white:#E8E8F0;--muted:#7A7A8C;--border:rgba(255,255,255,.06);
-  }
-  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-  html{scroll-behavior:smooth;background:var(--bg);color:var(--white);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;cursor:none}
-  body{position:relative;overflow-x:hidden}
-  body::after{content:'';position:fixed;inset:0;z-index:9998;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:256px 256px;pointer-events:none}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0A0A0F;font-family:'Inter',system-ui,sans-serif;color:#E8E8F0}
+  
+  #game{position:fixed;inset:0;z-index:1}
 
-  /* WORLD CANVAS */
-  #world-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+  /* HUD overlay */
+  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:2rem}
+  #hud>*{pointer-events:auto}
 
-  /* CURSOR */
-  .cursor{position:fixed;top:0;left:0;pointer-events:none;z-index:9999;mix-blend-mode:difference}
-  .cursor-inner{width:8px;height:8px;background:#fff;border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:width .15s,height .15s}
-  .cursor-outer{width:36px;height:36px;border:1.5px solid rgba(255,255,255,.4);border-radius:50%;position:absolute;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s}
-  .cursor.dragging .cursor-inner{width:16px;height:16px;background:var(--cyan)}
-  .cursor.dragging .cursor-outer{width:60px;height:60px;border-color:var(--cyan)}
-  .cursor.hover .cursor-inner{width:4px;height:4px;background:var(--green)}
-  .cursor.hover .cursor-outer{width:50px;height:50px;border-color:var(--green)}
+  .hud-top{display:flex;justify-content:space-between;align-items:flex-start}
+  .hud-brand{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:1.5rem;letter-spacing:-.02em;background:linear-gradient(135deg,#00D2FF,#6C5CE7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-shadow:none}
+  .hud-nav{display:flex;gap:2rem;list-style:none}
+  .hud-nav a{color:rgba(255,255,255,.5);text-decoration:none;font-size:.8rem;transition:color .2s}
+  .hud-nav a:hover{color:#fff}
 
-  /* Drag ripple */
-  .ripple{position:fixed;pointer-events:none;z-index:98;border-radius:50%;border:1px solid var(--cyan);animation:ripple-out .8s ease-out forwards}
-  @keyframes ripple-out{0%{width:0;height:0;opacity:.8}100%{width:120px;height:120px;opacity:0;margin-left:-60px;margin-top:-60px}}
+  .hud-center{text-align:center;pointer-events:none}
+  .hud-title{font-family:'Cabinet Grotesk',sans-serif;font-weight:900;font-size:clamp(2.5rem,6vw,5rem);line-height:1;letter-spacing:-.03em;text-shadow:0 0 60px rgba(0,0,0,.8)}
+  .hud-title span{display:block}.hud-title .cyan{color:#00D2FF}.hud-title .white{color:#fff}.hud-title .purple{color:#6C5CE7}
+  .hud-hint{font-family:'DM Mono',monospace;color:rgba(0,210,255,.6);font-size:.75rem;margin-top:1.5rem;letter-spacing:.15em}
 
-  /* NAV */
-  .nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.25rem 2rem;display:flex;justify-content:space-between;align-items:center;backdrop-filter:blur(20px);background:rgba(10,10,15,.8);border-bottom:1px solid var(--border);cursor:auto}
-  .nav-logo{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:1.25rem;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .nav-links{display:flex;gap:2rem;list-style:none}
-  .nav-links a{color:var(--muted);text-decoration:none;font-size:.85rem;cursor:pointer;transition:color .2s}
-  .nav-links a:hover{color:var(--white)}
+  .hud-bottom{display:flex;justify-content:space-between;align-items:flex-end}
+  .hud-controls{font-family:'DM Mono',monospace;font-size:.65rem;color:rgba(255,255,255,.35);line-height:1.8}
+  .hud-controls span{color:rgba(108,92,231,.7)}
+  .hud-stats{display:flex;gap:2rem;font-size:.75rem}
+  .hud-stat{text-align:right}
+  .hud-stat-val{font-family:'DM Mono',monospace;color:#00D2FF;font-size:1.1rem}
+  .hud-stat-label{color:rgba(255,255,255,.35);font-size:.6rem;text-transform:uppercase;letter-spacing:.1em}
 
-  /* SECTIONS */
-  section{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6rem 2rem;position:relative;z-index:1}
-  .section-label{color:var(--purple);font-family:'DM Mono',monospace;font-size:.75rem;letter-spacing:.2em;margin-bottom:1rem}
-  .section-title{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:clamp(2rem,5vw,3.5rem);margin-bottom:1rem;text-align:center}
-  .section-desc{color:var(--muted);text-align:center;max-width:600px;line-height:1.7;font-size:1.05rem;margin-bottom:3rem}
+  /* Sections overlay */
+  #sections{position:fixed;inset:0;z-index:5;pointer-events:none;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;transition:opacity .8s}
+  #sections.show{opacity:1}
+  .section-card{background:rgba(10,10,15,.85);border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:3rem;max-width:600px;text-align:center;backdrop-filter:blur(20px);pointer-events:auto;margin:1rem}
+  .section-card h2{font-family:'Cabinet Grotesk',sans-serif;font-weight:800;font-size:2rem;margin-bottom:.5rem}
+  .section-card p{color:rgba(255,255,255,.5);line-height:1.6;margin-bottom:1.5rem}
+  .section-card .btn{display:inline-block;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;padding:.75rem 2rem;border-radius:50px;background:linear-gradient(135deg,#6C5CE7,#00D2FF);color:#fff;text-decoration:none;font-size:.9rem;transition:all .3s}
+  .section-card .btn:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(108,92,231,.4)}
 
-  /* HERO */
-  .hero{text-align:center}
-  .hero-hint{font-family:'DM Mono',monospace;color:var(--cyan);font-size:.8rem;margin-bottom:2rem;opacity:.8;animation:pulse-hint 2s ease-in-out infinite}
-  @keyframes pulse-hint{0%,100%{opacity:.5}50%{opacity:1}}
-  .hero-title-wrap{display:flex;flex-wrap:wrap;justify-content:center;gap:.1em;margin-bottom:1.5rem}
-  .hero-char{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:clamp(3rem,8vw,6rem);line-height:1.05;display:inline-block;transition:transform .15s ease-out,color .15s,text-shadow .15s;will-change:transform}
-  .hero-char.cyan{color:var(--cyan)}.hero-char.white{color:#fff}.hero-char.purple{color:var(--purple)}
-  .hero-tagline{font-size:clamp(.9rem,1.8vw,1.15rem);color:var(--muted);letter-spacing:.3em;text-transform:uppercase;margin-bottom:3rem}
-  .hero-tagline:hover{letter-spacing:.5em}
-
-  .stats-row{display:flex;gap:2rem;flex-wrap:wrap;justify-content:center}
-  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem 2.5rem;text-align:center;backdrop-filter:blur(12px);transition:all .4s;min-width:200px;cursor:pointer;position:relative;overflow:hidden}
-  .stat-card::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at center,rgba(108,92,231,.12),transparent 70%);opacity:0;transition:opacity .4s}
-  .stat-card:hover::before{opacity:1}.stat-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-4px)}
-  .stat-number{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:2.5rem;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .stat-label{color:var(--muted);font-size:.85rem;margin-top:.5rem;text-transform:uppercase;letter-spacing:.1em}
-  .stat-badge{color:var(--green);font-size:.75rem;margin-top:.75rem}
-
-  .scroll-indicator{position:absolute;bottom:2rem;display:flex;flex-direction:column;align-items:center;gap:.5rem;color:var(--muted);font-size:.7rem;letter-spacing:.2em}
-  .scroll-line{width:1px;height:40px;background:linear-gradient(transparent,var(--purple))}
-
-  /* COUNTERS */
-  .counter-grid{display:flex;gap:3rem;flex-wrap:wrap;justify-content:center}
-  .counter-item{text-align:center;min-width:140px}
-  .counter-value{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:clamp(3rem,6vw,5rem);background:linear-gradient(135deg,var(--cyan),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-  .counter-unit{color:var(--muted);font-size:.9rem;margin-top:.5rem;text-transform:uppercase;letter-spacing:.1em}
-
-  .timeline{display:flex;gap:0;justify-content:center;align-items:flex-end;height:200px;max-width:600px;margin:2rem auto 0}
-  .timeline-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1}
-  .timeline-bar{width:60px;background:linear-gradient(180deg,var(--purple),var(--cyan));border-radius:6px 6px 0 0;height:0;transition:height 2s cubic-bezier(.22,1,.36,1)}
-  .timeline-label{color:var(--muted);font-size:.75rem;margin-top:.75rem}
-
-  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;max-width:900px;width:100%}
-  .stat-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;text-align:center;backdrop-filter:blur(12px);transition:all .3s;cursor:pointer}
-  .stat-box:hover{border-color:rgba(108,92,231,.3);transform:scale(1.03)}
-  .stat-box-num{font-family:'DM Mono',monospace;font-weight:500;font-size:2.5rem;color:var(--cyan)}
-  .stat-box-label{color:var(--muted);font-size:.85rem;margin-top:.5rem}
-
-  .pipeline-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;max-width:1000px;width:100%}
-  .pipeline-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:2rem;backdrop-filter:blur(12px);transition:all .4s;cursor:pointer;position:relative;overflow:hidden}
-  .pipeline-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--cyan));transform:scaleX(0);transition:transform .4s}
-  .pipeline-card:hover::before{transform:scaleX(1)}.pipeline-card:hover{border-color:rgba(108,92,231,.3);transform:translateY(-4px)}
-  .pipeline-step{font-family:'DM Mono',monospace;color:var(--purple);font-size:.7rem;letter-spacing:.2em;margin-bottom:.75rem}
-  .pipeline-title{font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:1.4rem;margin-bottom:.5rem}
-  .pipeline-desc{color:var(--muted);font-size:.9rem;line-height:1.6}
-
-  .cta-terminal{background:rgba(0,0,0,.5);border:1px solid var(--border);border-radius:16px;padding:2rem 3rem;max-width:650px;width:100%;text-align:left;font-family:'DM Mono',monospace}
-  .cta-dots{display:flex;gap:8px;margin-bottom:1.2rem}
-  .cta-dots span{width:12px;height:12px;border-radius:50%}
-  .cta-dots span:nth-child(1){background:#ff5f57}span:nth-child(2){background:#febc2e}span:nth-child(3){background:#28c840}
-  .cta-prompt{color:var(--purple)}
-  .cta-typing{color:var(--white);display:inline-block}
-  .cta-typing::after{content:'█';animation:blink 1s infinite;color:var(--green)}
-  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-  .cta-out{color:var(--green);font-size:.85rem;line-height:1.8}
-  .cta-button{display:inline-block;font-family:'Cabinet Grotesk',sans-serif;font-weight:700;font-size:1.1rem;padding:1rem 3rem;border-radius:50px;background:linear-gradient(135deg,var(--purple),var(--cyan));color:#fff;text-decoration:none;margin-top:2rem;transition:all .3s;cursor:pointer}
-  .cta-button:hover{transform:scale(1.05);box-shadow:0 0 40px rgba(108,92,231,.4)}
-
-  .footer{text-align:center;padding:3rem 2rem;color:var(--muted);font-size:.8rem;border-top:1px solid var(--border);cursor:auto}
-  .footer a{color:var(--muted);cursor:pointer}
-
-  /* GLITCH TRANSITION */
-  .glitch-overlay{position:fixed;inset:0;z-index:50;pointer-events:none;opacity:0;transition:opacity .1s}
-  .glitch-overlay.active{opacity:1}
-  .glitch-overlay .slice{position:absolute;inset:0;background:var(--purple);opacity:0;mix-blend-mode:screen}
-
-  .reveal{opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s cubic-bezier(.22,1,.36,1)}
-  .reveal.visible{opacity:1;transform:translateY(0)}
+  /* Transition flash */
+  #flash{position:fixed;inset:0;z-index:20;background:#6C5CE7;opacity:0;pointer-events:none;transition:opacity .15s}
+  #flash.active{opacity:.15}
 
   @media(max-width:768px){
-    .nav{padding:1rem}.nav-links{gap:1rem}
-    .stats-row{gap:1rem}.stat-card{padding:1.5rem;min-width:140px}
-    .counter-grid{gap:1.5rem}
-    .cursor{display:none}html{cursor:auto}
-    .cta-terminal{padding:1.5rem}
-    .timeline-bar{width:40px}
-    .hero-char{font-size:clamp(2rem,10vw,4rem)}
-  }
-  @media(prefers-reduced-motion){
-    *{animation-duration:.01ms!important;transition-duration:.01ms!important}
-    #world-canvas{display:none}
+    #hud{padding:1rem}
+    .hud-nav{gap:1rem}.hud-nav a{font-size:.7rem}
+    .hud-controls{display:none}
+    .section-card{padding:2rem;margin:.5rem}
   }
 </style>
 </head>
 <body>
 
-<canvas id="world-canvas"></canvas>
+<canvas id="game"></canvas>
 
-<div class="cursor" id="cursor"><div class="cursor-inner"></div><div class="cursor-outer"></div></div>
+<div id="flash"></div>
 
-<div class="glitch-overlay" id="glitch"><div class="slice"></div></div>
-
-<a href="#main" style="position:absolute;top:-100px;left:1rem;z-index:200;background:var(--purple);color:white;padding:.5rem 1rem;border-radius:0 0 8px 8px" onfocus="this.style.top='0'">Skip to content</a>
-
-<nav class="nav">
-  <span class="nav-logo">AI NATIVE</span>
-  <ul class="nav-links">
-    <li><a href="#velocity">Velocity</a></li>
-    <li><a href="#scale">Scale</a></li>
-    <li><a href="#pipeline">Pipeline</a></li>
-    <li><a href="#cta">Start</a></li>
-  </ul>
-</nav>
-
-<main id="main">
-
-<section class="hero" id="hero">
-  <div class="hero-hint">✦ Drag anywhere to generate a world ✦</div>
-
-  <div class="hero-title-wrap reveal" id="hero-title">
-    <span class="hero-char cyan">A</span><span class="hero-char cyan">I</span><span class="hero-char white"> </span><span class="hero-char white">N</span><span class="hero-char white">A</span><span class="hero-char white">T</span><span class="hero-char white">I</span><span class="hero-char white">V</span><span class="hero-char white">E</span><span class="hero-char white"> </span><span class="hero-char white">S</span><span class="hero-char white">T</span><span class="hero-char white">U</span><span class="hero-char white">D</span><span class="hero-char white">I</span><span class="hero-char purple">O</span>
+<div id="hud">
+  <div class="hud-top">
+    <div class="hud-brand">AI NATIVE</div>
+    <ul class="hud-nav">
+      <li><a href="#" onclick="showSection('velocity')">Velocity</a></li>
+      <li><a href="#" onclick="showSection('scale')">Scale</a></li>
+      <li><a href="#" onclick="showSection('pipeline')">Pipeline</a></li>
+      <li><a href="#" onclick="showSection('cta')">Contact</a></li>
+    </ul>
   </div>
-
-  <p class="hero-tagline reveal">Build worlds. Break rules. Ship fast.</p>
-
-  <div class="stats-row reveal">
-    <div class="stat-card"><div class="stat-number" id="stat-hours" data-target="48">0</div><div class="stat-label">Hours to Prototype</div><div class="stat-badge">▲ 12x faster</div></div>
-    <div class="stat-card"><div class="stat-number" id="stat-assets" data-target="5000">0</div><div class="stat-label">Assets per Project</div><div class="stat-badge">▲ AI-generated</div></div>
-    <div class="stat-card"><div class="stat-number" id="stat-rate" data-target="98">0</div><div class="stat-label">Percent Automated</div><div class="stat-badge">▲ Focus on creative</div></div>
+  <div class="hud-center" id="hud-title">
+    <div class="hud-title"><span class="cyan">AI</span><span class="white">NATIVE</span><span class="purple">STUDIO</span></div>
+    <div class="hud-hint">✦ WASD/Arrows to explore · Click to build · Scroll to zoom ✦</div>
   </div>
-  <div class="scroll-indicator">SCROLL<div class="scroll-line"></div></div>
-</section>
-
-<section id="velocity">
-  <div class="section-label reveal">VELOCITY</div>
-  <h2 class="section-title reveal">48 Hours<br>Concept to Prototype</h2>
-  <p class="section-desc reveal">Traditional studios take months. We ship game-ready prototypes in two days. AI handles asset generation, level design, physics. You focus on creative direction.</p>
-  <div class="counter-grid reveal" style="margin-bottom:3rem">
-    <div class="counter-item"><div class="counter-value counter-number" data-target="48">0</div><div class="counter-unit">Hours</div></div>
-    <div class="counter-item"><div class="counter-value counter-number" data-target="12">0</div><div class="counter-unit">Iterations/Day</div></div>
-    <div class="counter-item"><div class="counter-value counter-number" data-target="5">0</div><div class="counter-unit">Days to Ship</div></div>
+  <div class="hud-bottom">
+    <div class="hud-controls"><span>WASD</span> move &nbsp; <span>CLICK</span> build &nbsp; <span>SCROLL</span> zoom &nbsp; <span>E</span> interact</div>
+    <div class="hud-stats">
+      <div class="hud-stat"><div class="hud-stat-val" id="stat-blocks">0</div><div class="hud-stat-label">Blocks Placed</div></div>
+      <div class="hud-stat"><div class="hud-stat-val" id="stat-worlds">0</div><div class="hud-stat-label">Worlds Generated</div></div>
+    </div>
   </div>
-  <div class="timeline reveal" id="timeline">
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar"></div><div class="timeline-label">Concept</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:.3s"></div><div class="timeline-label">Generate</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:.6s"></div><div class="timeline-label">Iterate</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:.9s"></div><div class="timeline-label">Polish</div></div>
-    <div class="timeline-bar-wrap"><div class="timeline-bar tbar" style="transition-delay:1.2s"></div><div class="timeline-label">Ship</div></div>
-  </div>
-</section>
+</div>
 
-<section id="scale">
-  <div class="section-label reveal">SCALE</div>
-  <h2 class="section-title reveal">5,000+ Assets<br>Per Project</h2>
-  <p class="section-desc reveal">Our AI pipeline generates thousands of production-ready assets — textures, 3D models, animations, sound effects, dialogue trees. All coherent. All consistent.</p>
-  <div class="stat-grid reveal">
-    <div class="stat-box"><div class="stat-box-num stat-odometer" id="stat-textures" data-target="3200">0</div><div class="stat-box-label">Textures</div></div>
-    <div class="stat-box"><div class="stat-box-num stat-odometer" id="stat-models" data-target="850">0</div><div class="stat-box-label">3D Models</div></div>
-    <div class="stat-box"><div class="stat-box-num stat-odometer" id="stat-anims" data-target="620">0</div><div class="stat-box-label">Animations</div></div>
-    <div class="stat-box"><div class="stat-box-num stat-odometer" id="stat-sounds" data-target="410">0</div><div class="stat-box-label">SFX</div></div>
-  </div>
-</section>
-
-<section id="pipeline">
-  <div class="section-label reveal">PIPELINE</div>
-  <h2 class="section-title reveal">How It Works</h2>
-  <p class="section-desc reveal">Four steps. Zero friction.</p>
-  <div class="pipeline-grid reveal">
-    <div class="pipeline-card"><div class="pipeline-step">STEP 01</div><div class="pipeline-title">Prompt</div><div class="pipeline-desc">Describe your game world in natural language. That's all it takes.</div></div>
-    <div class="pipeline-card"><div class="pipeline-step">STEP 02</div><div class="pipeline-title">Generate</div><div class="pipeline-desc">Our engine produces thousands of coherent assets. All game-ready.</div></div>
-    <div class="pipeline-card"><div class="pipeline-step">STEP 03</div><div class="pipeline-title">Iterate</div><div class="pipeline-desc">Tweak. Remix. Change direction in seconds, not weeks.</div></div>
-    <div class="pipeline-card"><div class="pipeline-step">STEP 04</div><div class="pipeline-title">Deploy</div><div class="pipeline-desc">One click. Web, mobile, desktop. Production-ready.</div></div>
-  </div>
-</section>
-
-<section id="cta">
-  <div class="cta-terminal reveal">
-    <div class="cta-dots"><span></span><span></span><span></span></div>
-    <div><span class="cta-prompt">$</span> studio deploy --target production</div>
-    <div style="margin-top:1rem"></div>
-    <div class="cta-out">✓ 3,247 textures</div>
-    <div class="cta-out">✓ 856 3D models</div>
-    <div class="cta-out">✓ Audio engine online</div>
-    <div class="cta-out" style="margin-top:.5rem">Ready. 48h to ship.</div>
-    <div style="margin-top:1rem"><span class="cta-prompt">$</span> <span class="cta-typing" id="cta-typewriter"></span></div>
-  </div>
-  <h2 class="section-title reveal" style="margin-top:3rem">The Future<br>Is Generated</h2>
-  <p class="section-desc reveal">Stop wrestling with engines. Build the game you've been dreaming about.</p>
-  <a href="mailto:hello@hdrv.studio" class="cta-button reveal">Join the Waitlist</a>
-</section>
-
-</main>
-
-<footer class="footer">© 2026 AI Native Studio · <a href="#">Privacy</a> · <a href="#">Terms</a></footer>
+<div id="sections"></div>
 
 <script>
-// ══════════════════════════════════════
-// DRAG-TO-GENERATE WORLD CANVAS
-// ══════════════════════════════════════
-const wc=document.getElementById('world-canvas'),wctx=wc.getContext('2d');
-let wW,wH;
-function rs(){wW=wc.width=window.innerWidth;wH=wc.height=window.innerHeight}
-rs();window.addEventListener('resize',rs);
+// ══════════════════════════════════════════
+// GAME ENGINE — World Explorer
+// ══════════════════════════════════════════
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
+let W,H,camera={x:0,y:0,zoom:1,targetZoom:1};
 
-// Terrain state
-const terrain=[];
-const TILE=4; // pixel size of each terrain cell
-const COLS=()=>Math.ceil(wW/TILE);
-const ROWS=()=>Math.ceil(wH/TILE);
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
 
-// Initialize flat terrain
-function initTerrain(){
-  terrain.length=0;
-  const cols=COLS(),rows=ROWS();
-  for(let r=0;r<rows;r++){
-    terrain[r]=[];
-    for(let c=0;c<cols;c++)terrain[r][c]=0;
+// ── WORLD ──
+const CHUNK=64; // pixels per chunk
+const world={}; // key: "cx,cy" → {blocks:[], color, biome}
+let blocksPlaced=0,worldsGenerated=0;
+
+const BIOMES=['cyber','forest','desert','ocean','volcano'];
+const biomeColors={
+  cyber:['rgba(0,210,255,.3)','rgba(108,92,231,.2)','rgba(0,210,255,.15)'],
+  forest:['rgba(0,255,136,.2)','rgba(0,200,100,.15)','rgba(100,200,50,.1)'],
+  desert:['rgba(255,200,100,.2)','rgba(255,180,50,.15)','rgba(200,150,50,.1)'],
+  ocean:['rgba(0,150,255,.2)','rgba(0,100,200,.15)','rgba(0,200,255,.1)'],
+  volcano:['rgba(255,80,50,.2)','rgba(255,120,30,.15)','rgba(200,50,20,.1)']
+};
+
+function chunkKey(cx,cy){return `${Math.floor(cx/CHUNK)},${Math.floor(cy/CHUNK)}`}
+
+function generateChunk(cx,cy){
+  const key=chunkKey(cx,cy);
+  if(world[key])return;
+  const seed=cx*1000+cy;
+  const biome=BIOMES[Math.abs(Math.floor(seed))%BIOMES.length];
+  const blocks=[];
+  // Procedural generation based on noise
+  for(let i=0;i<8+(Math.abs(seed)%12);i++){
+    const bx=cx+(seed*7+i*13)%CHUNK;
+    const by=cy+(seed*11+i*17)%CHUNK;
+    const size=3+(Math.abs(seed+i*3)%12);
+    blocks.push({x:bx,y:by,w:size,h:size});
   }
-}
-initTerrain();window.addEventListener('resize',()=>{initTerrain();drawTerrain()});
-
-// Color map for heights
-function heightColor(h){
-  if(h<.05)return 'rgba(10,10,15,1)';
-  if(h<.15)return `rgba(0,210,255,${h})`;
-  if(h<.3)return `rgba(108,92,231,${h})`;
-  if(h<.5)return `rgba(0,255,136,${h*.7})`;
-  if(h<.8)return `rgba(0,210,255,${h*.8})`;
-  return `rgba(255,255,255,${h*.9})`;
+  world[key]={blocks,biome,generated:Date.now()};
+  worldsGenerated++;
+  document.getElementById('stat-worlds').textContent=worldsGenerated;
 }
 
-function drawTerrain(){
-  wctx.clearRect(0,0,wW,wH);
-  const cols=COLS(),rows=ROWS();
-  for(let r=0;r<Math.min(rows,terrain.length);r++){
-    if(!terrain[r])continue;
-    for(let c=0;c<Math.min(cols,terrain[r].length);c++){
-      const h=terrain[r][c];
-      if(h>0){wctx.fillStyle=heightColor(h);wctx.fillRect(c*TILE,r*TILE,TILE,TILE)}
-    }
-  }
-}
+// ── PLAYER ──
+const player={x:0,y:0,vx:0,vy:0,speed:4,size:12,trail:[]};
+const keys={};
+window.addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;e.key==='e'&&interact()});
+window.addEventListener('keyup',e=>{keys[e.key.toLowerCase()]=false});
 
-// Drag tracking
-let dragging=false,dragX=0,dragY=0;
-
-function generateAt(cx,cy,radius,strength){
-  const cols=COLS(),rows=ROWS();
-  const rPx=radius;
-  for(let r=Math.max(0,cy-rPx);r<Math.min(rows,cy+rPx);r++){
-    for(let c=Math.max(0,cx-rPx);c<Math.min(cols,cx+rPx);c++){
-      const dist=Math.sqrt((c-cx)**2+(r-cy)**2);
-      if(dist<radius){
-        if(!terrain[r])terrain[r]=[];
-        const force=strength*(1-dist/radius);
-        terrain[r][c]=Math.min(1,(terrain[r][c]||0)+force*.4);
-      }
-    }
+// ── PARTICLES ──
+const particles=[];
+function spawnParticles(x,y,color,count=8){
+  for(let i=0;i<count;i++){
+    particles.push({x,y,vx:(Math.random()-.5)*3,vy:(Math.random()-.5)*3,life:1,decay:.02+Math.random()*.04,size:3+Math.random()*4,color});
   }
 }
 
-function terrainStep(){
-  // Smooth terrain over time
-  const cols=COLS(),rows=ROWS();
-  for(let r=0;r<Math.min(rows,terrain.length);r++){
-    if(!terrain[r])continue;
-    for(let c=0;c<Math.min(cols,terrain[r].length);c++){
-      if(terrain[r][c]>.001){
-        // Spread to neighbors
-        if(c>0&&(!terrain[r][c-1]||terrain[r][c-1]<terrain[r][c]*.6)){if(!terrain[r])terrain[r]=[];terrain[r][c-1]=Math.max(terrain[r][c-1]||0,terrain[r][c]*.55)}
-        if(c<cols-1&&(!terrain[r][c+1]||terrain[r][c+1]<terrain[r][c]*.6)){if(!terrain[r])terrain[r]=[];terrain[r][c+1]=Math.max(terrain[r][c+1]||0,terrain[r][c]*.55)}
-        if(r>0){if(!terrain[r-1])terrain[r-1]=[];if(!terrain[r-1][c]||terrain[r-1][c]<terrain[r][c]*.6)terrain[r-1][c]=Math.max(terrain[r-1][c]||0,terrain[r][c]*.55)}
-        if(r<rows-1){if(!terrain[r+1])terrain[r+1]=[];if(!terrain[r+1][c]||terrain[r+1][c]<terrain[r][c]*.6)terrain[r+1][c]=Math.max(terrain[r+1][c]||0,terrain[r][c]*.55)}
-        // Decay
-        terrain[r][c]*=.995;
-      }
-    }
-  }
-}
-
-let lastTerrainStep=0;
-function terrainLoop(time){
-  if(time-lastTerrainStep>50){terrainStep();lastTerrainStep=time}
-  drawTerrain();
-  requestAnimationFrame(terrainLoop);
-}
-requestAnimationFrame(terrainLoop);
-
-// Mouse events for drag generation
-wc.addEventListener('mousedown',e=>{dragging=true;dragX=e.clientX;dragY=e.clientY;document.getElementById('cursor').classList.add('dragging')});
-wc.addEventListener('mousemove',e=>{
-  if(dragging){
-    const cols=COLS(),rows=ROWS();
-    const cx=Math.floor(e.clientX/TILE),cy=Math.floor(e.clientY/TILE);
-    const pcx=Math.floor(dragX/TILE),pcy=Math.floor(dragY/TILE);
-    // Generate on drag path
-    const steps=Math.max(Math.abs(cx-pcx),Math.abs(cy-pcy));
-    for(let i=0;i<=steps;i++){
-      const t=i/(steps||1);
-      const gx=Math.floor(pcx+(cx-pcx)*t),gy=Math.floor(pcy+(cy-pcy)*t);
-      generateAt(gx,gy,12,1);
-    }
-    dragX=e.clientX;dragY=e.clientY;
-    // Ripple effect
-    const rp=document.createElement('div');rp.className='ripple';rp.style.left=e.clientX+'px';rp.style.top=e.clientY+'px';document.body.appendChild(rp);setTimeout(()=>rp.remove(),800);
+// ── BUILD ──
+canvas.addEventListener('click',e=>{
+  const wx=(e.clientX-W/2)/camera.zoom+camera.x;
+  const wy=(e.clientY-H/2)/camera.zoom+camera.y;
+  const key=chunkKey(wx,wy);
+  if(!world[key])generateChunk(Math.floor(wx/CHUNK)*CHUNK,Math.floor(wy/CHUNK)*CHUNK);
+  if(world[key]){
+    world[key].blocks.push({x:wx-24,y:wy-24,w:48,h:48});
+    blocksPlaced++;
+    document.getElementById('stat-blocks').textContent=blocksPlaced;
+    spawnParticles(wx,wy,'#00D2FF',15);
+    // Flash
+    const f=document.getElementById('flash');f.classList.add('active');setTimeout(()=>f.classList.remove('active'),150);
   }
 });
-document.addEventListener('mouseup',()=>{dragging=false;document.getElementById('cursor').classList.remove('dragging')});
 
-// Touch support
-wc.addEventListener('touchstart',e=>{e.preventDefault();dragging=true;dragX=e.touches[0].clientX;dragY=e.touches[0].clientY});
-wc.addEventListener('touchmove',e=>{e.preventDefault();if(dragging){const ex=e.touches[0].clientX,ey=e.touches[0].clientY;const cols=COLS(),rows=ROWS();const cx=Math.floor(ex/TILE),cy=Math.floor(ey/TILE);generateAt(cx,cy,12,1);dragX=ex;dragY=ey}},{passive:false});
-document.addEventListener('touchend',()=>{dragging=false});
+// ── SCROLL ZOOM ──
+canvas.addEventListener('wheel',e=>{e.preventDefault();camera.targetZoom=Math.max(.3,Math.min(3,camera.targetZoom-e.deltaY*.001))},{passive:false});
 
-// ══════════════════════════════════════
-// CUSTOM CURSOR
-// ══════════════════════════════════════
-const cursor=document.getElementById('cursor');
-const ci=cursor.querySelector('.cursor-inner'),co=cursor.querySelector('.cursor-outer');
-let cx=wW/2,cy=wH/2,tx=cx,ty=cy;
-document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY});
-document.querySelectorAll('a,button,.stat-card,.stat-box,.pipeline-card,.cta-button').forEach(el=>{
-  el.addEventListener('mouseenter',()=>cursor.classList.add('hover'));
-  el.addEventListener('mouseleave',()=>cursor.classList.remove('hover'));
-});
-(function uc(){cx+=(tx-cx)*.22;cy+=(ty-cy)*.22;cursor.style.transform=`translate(${cx}px,${cy}px)`;requestAnimationFrame(uc)})();
-document.querySelectorAll('.nav,.nav *,.footer,.footer *').forEach(el=>el.style.cursor='auto');
+// ── SECTIONS ──
+const sectionsDiv=document.getElementById('sections');
+const sections={
+  velocity:{title:'48 Hours',sub:'Concept to Prototype',desc:'Traditional studios take months. We ship game-ready prototypes in two days. AI handles asset generation, level design, and physics.',btn:'Learn More'},
+  scale:{title:'5,000+ Assets',sub:'Per Project',desc:'Our AI pipeline generates thousands of production-ready assets — textures, 3D models, animations, sound effects. All coherent. All game-ready.',btn:'See Pipeline'},
+  pipeline:{title:'How It Works',sub:'Four Steps. Zero Friction.',desc:'Prompt → Generate → Iterate → Deploy. From blank canvas to deployed game. No build pipelines. No waiting.',btn:'Start Building'},
+  cta:{title:'The Future',sub:'Is Generated',desc:'Stop wrestling with engines. Build the game you\'ve been dreaming about. Today.',btn:'<a href="mailto:hello@hdrv.studio" class="btn">Join Waitlist</a>'}
+};
+let currentSection=null;
 
-// ══════════════════════════════════════
-// GLITCH TRANSITION
-// ══════════════════════════════════════
-const glitchEl=document.getElementById('glitch'),glitchSlice=glitchEl.querySelector('.slice');
-let lastSection='hero';
-const sectionObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting&&e.target.id!==lastSection){
-      // Trigger glitch
-      glitchEl.classList.add('active');
-      glitchSlice.style.opacity=String(Math.random()*.3+.1);
-      glitchSlice.style.transform=`translateY(${(Math.random()-.5)*8}px)`;
-      setTimeout(()=>glitchEl.classList.remove('active'),150);
-      lastSection=e.target.id;
+function showSection(id){
+  if(currentSection===id){sectionsDiv.classList.remove('show');currentSection=null;return}
+  currentSection=id;
+  const s=sections[id];
+  sectionsDiv.innerHTML=`<div class="section-card"><h2>${s.title}<br>${s.sub}</h2><p>${s.desc}</p>${s.btn}</div>`;
+  sectionsDiv.classList.add('show');
+  spawnParticles(player.x,player.y,'#6C5CE7',25);
+}
+window.showSection=showSection;
+
+function interact(){
+  // Find nearest chunk center
+  const cx=Math.round(player.x/CHUNK)*CHUNK;
+  const cy=Math.round(player.y/CHUNK)*CHUNK;
+  generateChunk(cx,cy);
+  spawnParticles(cx,cy,'#00FF88',20);
+}
+
+// ── GAME LOOP ──
+let lastTime=0;
+function gameLoop(time){
+  const dt=Math.min((time-lastTime)/16.67,3);lastTime=time;
+
+  // Player input
+  player.vx=0;player.vy=0;
+  if(keys['w']||keys['arrowup'])player.vy=-1;
+  if(keys['s']||keys['arrowdown'])player.vy=1;
+  if(keys['a']||keys['arrowleft'])player.vx=-1;
+  if(keys['d']||keys['arrowright'])player.vx=1;
+
+  // Normalize diagonal
+  if(player.vx&&player.vy){player.vx*=.707;player.vy*=.707}
+
+  player.x+=player.vx*player.speed*dt;
+  player.y+=player.vy*player.speed*dt;
+
+  // Trail
+  if(player.vx||player.vy){
+    player.trail.push({x:player.x,y:player.y,life:1});
+    if(player.trail.length>20)player.trail.shift();
+  }
+
+  // Generate chunks around player
+  const pcx=Math.floor(player.x/CHUNK)*CHUNK,pcy=Math.floor(player.y/CHUNK)*CHUNK;
+  for(let dx=-CHUNK*2;dx<=CHUNK*2;dx+=CHUNK)
+    for(let dy=-CHUNK*2;dy<=CHUNK*2;dy+=CHUNK)
+      generateChunk(pcx+dx,pcy+dy);
+
+  // Camera
+  camera.x+=(player.x-camera.x)*.08;
+  camera.y+=(player.y-camera.y)*.08;
+  camera.zoom+=(camera.targetZoom-camera.zoom)*.1;
+
+  // Particles
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=p.decay*dt;
+    if(p.life<=0)particles.splice(i,1);
+  }
+
+  // Trail decay
+  for(let i=player.trail.length-1;i>=0;i--){
+    player.trail[i].life-=.04*dt;
+    if(player.trail[i].life<=0)player.trail.splice(i,1);
+  }
+
+  // ── RENDER ──
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle='#0A0A0F';ctx.fillRect(0,0,W,H);
+
+  ctx.save();
+  ctx.translate(W/2,H/2);
+  ctx.scale(camera.zoom,camera.zoom);
+  ctx.translate(-camera.x,-camera.y);
+
+  // Draw chunks
+  for(const[key,chunk]of Object.entries(world)){
+    const colors=biomeColors[chunk.biome]||biomeColors.cyber;
+    // Ground
+    ctx.fillStyle=colors[0];
+    const[cx,cy]=key.split(',').map(Number);
+    ctx.fillRect(cx,cy,CHUNK,CHUNK);
+    // Grid lines
+    ctx.strokeStyle=colors[2];
+    ctx.lineWidth=.5;
+    ctx.strokeRect(cx,cy,CHUNK,CHUNK);
+    // Blocks
+    for(const b of chunk.blocks){
+      const age=(Date.now()-chunk.generated)/5000;
+      const alpha=.4+Math.min(.6,age)*.5;
+      ctx.fillStyle=colors[1].replace(/[\d.]+\)$/,alpha+')');
+      ctx.fillRect(b.x,b.y,b.w,b.h);
+      // Border
+      ctx.strokeStyle=colors[0].replace(/[\d.]+\)$/,'.6)');
+      ctx.lineWidth=1;
+      ctx.strokeRect(b.x,b.y,b.w,b.h);
     }
-  });
-},{threshold:.3});
-document.querySelectorAll('section').forEach(s=>sectionObs.observe(s));
+  }
 
-// ══════════════════════════════════════
-// MOUSE-WARP TITLE
-// ══════════════════════════════════════
-const chars=document.querySelectorAll('.hero-char');
-document.addEventListener('mousemove',e=>{
-  chars.forEach(c=>{
-    const rect=c.getBoundingClientRect(),ccx=rect.left+rect.width/2,ccy=rect.top+rect.height/2;
-    const dx=e.clientX-ccx,dy=e.clientY-ccy,dist=Math.sqrt(dx*dx+dy*dy),md=150;
-    if(dist<md){const f=(1-dist/md);c.style.transform=`translate(${dx/dist*f*14}px,${dy/dist*f*14}px) scale(${1+f*.2})`;c.style.textShadow=`0 0 ${f*20}px currentColor`}
-    else{c.style.transform='translate(0,0) scale(1)';c.style.textShadow='none'}
-  });
-});
+  // Player trail
+  for(const t of player.trail){
+    ctx.beginPath();ctx.arc(t.x,t.y,player.size*.4*t.life,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,210,255,${t.life*.3})`;ctx.fill();
+  }
 
-// ══════════════════════════════════════
-// REVEAL
-// ══════════════════════════════════════
-const ro=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15,rootMargin:'0px 0px -40px 0px'});
-document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+  // Player
+  const bob=player.vx||player.vy?Math.sin(time*.01)*2:0;
+  // Glow
+  ctx.beginPath();ctx.arc(player.x,player.y+bob,player.size*2,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,210,255,.1)';ctx.fill();
+  // Body
+  ctx.beginPath();ctx.arc(player.x,player.y+bob,player.size,0,Math.PI*2);
+  ctx.fillStyle='#fff';ctx.fill();
+  // Inner
+  ctx.beginPath();ctx.arc(player.x,player.y+bob,player.size*.6,0,Math.PI*2);
+  ctx.fillStyle='#00D2FF';ctx.fill();
 
-// ══════════════════════════════════════
-// CTA TYPEWRITER
-// ══════════════════════════════════════
-const ct=document.getElementById('cta-typewriter'),ctp='the future is generated';let cti=0,cts=false;
-new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&!cts){cts=true;(function t(){if(cti<ctp.length){ct.textContent=ctp.substring(0,++cti);setTimeout(t,100)}})()}},{threshold:.5}).observe(document.getElementById('cta'));
+  // Particles
+  for(const p of particles){
+    ctx.beginPath();ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);
+    ctx.fillStyle=p.color.replace(')',`,${p.life})`);ctx.fill();
+  }
 
-// ══════════════════════════════════════
-// COUNTERS
-// ══════════════════════════════════════
-function an(el,sf=''){const tgt=parseInt(el.dataset.target),dur=2000,start=performance.now();(function u(now){const p=Math.min((now-start)/dur,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(e*tgt).toLocaleString()+sf;if(p<1)requestAnimationFrame(u)})(start)}
-const cObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){an(e.target);cObs.unobserve(e.target)}})},{threshold:.4});
-document.querySelectorAll('.counter-number,.stat-odometer').forEach(el=>cObs.observe(el));
-const sObs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){an(e.target,e.target.id==='stat-assets'?'+':e.target.id==='stat-rate'?'%':'');sObs.unobserve(e.target)}})},{threshold:.3});
-['stat-hours','stat-assets','stat-rate'].forEach(id=>{const el=document.getElementById(id);if(el)sObs.observe(el)});
-new IntersectionObserver(entries=>{if(entries[0].isIntersecting){document.querySelectorAll('.tbar').forEach((b,i)=>{b.style.height=['40%','60%','75%','90%','100%'][i]})}},{threshold:.4}).observe(document.getElementById('timeline'));
+  ctx.restore();
 
-console.log('%c AI Native Studio %c v7 %c — Drag to generate. Scroll to explore.',
+  // Grid overlay (subtle)
+  ctx.strokeStyle='rgba(108,92,231,.03)';
+  ctx.lineWidth=.5;
+  const gs=80/camera.zoom;
+  const ox=-camera.x%gs,oy=-camera.y%gs;
+  ctx.beginPath();
+  for(let x=ox;x<W;x+=gs){ctx.moveTo(x,0);ctx.lineTo(x,H)}
+  for(let y=oy;y<H;y+=gs){ctx.moveTo(0,y);ctx.lineTo(W,y)}
+  ctx.stroke();
+
+  // Vignette
+  const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.4,W/2,H/2,Math.max(W,H)*.8);
+  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(10,10,15,.6)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+  requestAnimationFrame(gameLoop);
+}
+
+// Start
+generateChunk(0,0);
+generateChunk(CHUNK,0);
+generateChunk(-CHUNK,0);
+generateChunk(0,CHUNK);
+generateChunk(0,-CHUNK);
+requestAnimationFrame(gameLoop);
+
+// Touch controls
+let touchActive=false,touchStart={};
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  if(e.touches.length===1){touchActive=true;touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY}}
+},{passive:false});
+canvas.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  if(touchActive&&e.touches.length===1){
+    const dx=e.touches[0].clientX-touchStart.x;
+    const dy=e.touches[0].clientY-touchStart.y;
+    keys['d']=dx>15;keys['a']=dx<-15;
+    keys['s']=dy>15;keys['w']=dy<-15;
+  }
+},{passive:false});
+canvas.addEventListener('touchend',()=>{touchActive=false;keys['w']=keys['a']=keys['s']=keys['d']=false});
+
+console.log('%c🎮 AI Native Studio %c v9 %c — This website is a game.',
   'color:#6C5CE7;font-size:1.2em','color:#00D2FF','color:#00FF88;');
 </script>
 </body>
